@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
+import com.winsun.iot.http.common.HttpMap;
 import com.winsun.iot.http.handler.HttpController;
 import com.winsun.iot.http.handler.HttpHandlerFactory;
 import com.winsun.iot.utils.ClassScanner;

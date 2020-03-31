@@ -13,8 +13,11 @@ public class DeviceManager {
     private static final Logger logger = LoggerFactory.getLogger(DeviceManager.class);
     @Inject
     private DeviceDao deviceDao;
+    @Inject
+    private DeviceConnManager connManager;
 
     public void start(){
+        connManager.start();
         List<DeviceList> deviceLists = deviceDao.listAll();
         for (DeviceList deviceList : deviceLists) {
             System.out.println(deviceList.getId());

@@ -1,6 +1,8 @@
 package com.winsun.iot.http;
 
 import com.winsun.iot.config.Config;
+import com.winsun.iot.http.common.HttpServerInitializer;
+import com.winsun.iot.iocmodule.Ioc;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
@@ -32,6 +34,8 @@ public class HttpServer {
 
     public void initHttpServer() {
 
+        Config config = Ioc.getInjector().getInstance(Config.class);
+
         // Configure the server.
         EventLoopGroup bossGroup = new NioEventLoopGroup(20);
         EventLoopGroup workerGroup = new NioEventLoopGroup(20);
@@ -46,9 +50,9 @@ public class HttpServer {
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30 * 1000)// 30S
                     .childHandler(new HttpServerInitializer());                    //闁板秶鐤嗛張宥呭閸掓繂顫愰崠锟?
 
-            logger.info("http port:" + Config.getHttpServerPort());
-            logger.info("Http server bind port : " + Config.getHttpServerPort());
-            ChannelFuture f = b.bind(Config.getHttpServerPort()).sync();
+            logger.info("http port:" + config.getHttpServerPort());
+            logger.info("Http server bind port : " + config.getHttpServerPort());
+            ChannelFuture f = b.bind(config.getHttpServerPort()).sync();
             f.channel().closeFuture().sync();
         } catch (Exception e) {
             logger.error("Http server start err:" + e.getMessage());

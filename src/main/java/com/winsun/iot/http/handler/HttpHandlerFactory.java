@@ -1,7 +1,6 @@
 package com.winsun.iot.http.handler;
 
-import com.google.inject.Inject;
-import com.winsun.iot.http.HttpMap;
+import com.winsun.iot.http.common.HttpMap;
 
 import java.util.HashMap;
 import java.util.Map;

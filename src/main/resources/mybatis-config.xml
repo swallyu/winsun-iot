@@ -18,7 +18,7 @@
         <setting name="localCacheScope" value="SESSION" />
         <setting name="jdbcTypeForNull" value="NULL" />
         <setting name="lazyLoadTriggerMethods" value="equals,clone,hashCode,toString" />
-        <setting name="logImpl" value="STDOUT_LOGGING" />
+<!--        <setting name="logImpl" value="STDOUT_LOGGING" />-->
     </settings>
 
     <environments default="development">
