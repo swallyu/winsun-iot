@@ -1,14 +1,17 @@
 package com.winsun.iot.ruleengine;
 
 import com.winsun.iot.command.CmdMsg;
+import com.winsun.iot.command.CmdRuleInfo;
 import com.winsun.iot.command.EnumQoS;
 import com.winsun.iot.device.DeviceConnManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CmdRule {
-
+    private static final Logger logger = LoggerFactory.getLogger(CmdRule.class);
     //指令闭环实现
     private EnumQoS cmdQos;
 
@@ -16,46 +19,27 @@ public class CmdRule {
 
     private CmdMsg cmdMsg;
 
+    private boolean iscomplete;
+
     private List<CmdRuleInfo> cmdMsgList = new ArrayList<>();
 
     public CmdRule(CmdMsg cmdMsg) {
         this.cmdMsg = cmdMsg;
     }
 
-    public void execute(){
 
-        connManager.sendCmd(cmdMsg);
+    public void addCmdMsg(CmdRuleInfo cmdMsg) {
+        this.cmdMsgList.add(cmdMsg);
     }
 
-    public static class CmdRuleInfo {
-        private CmdMsg cmdMsg;
-        //业务标识,在进行指令往返时需要使用此标识标记一次业务
-        private String bizId;
+    public boolean isComplete() {
+        return iscomplete;
+    }
 
-        private EnumCmdStatus status;
-
-        public String getTopic() {
-            return topic;
-        }
-
-        public void setTopic(String topic) {
-            this.topic = topic;
-        }
-
-        public CmdMsg getCmdMsg() {
-            return cmdMsg;
-        }
-
-        public void setCmdMsg(CmdMsg cmdMsg) {
-            this.cmdMsg = cmdMsg;
-        }
-
-        public String getBizId() {
-            return bizId;
-        }
-
-        public void setBizId(String bizId) {
-            this.bizId = bizId;
-        }
+    /**
+     * 指令闭环完成时执行
+     */
+    public void done() {
+        logger.info("the biz command is complete {}",this.cmdMsg.getBizId());
     }
 }

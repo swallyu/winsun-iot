@@ -13,6 +13,7 @@ public class DeviceManager {
     private static final Logger logger = LoggerFactory.getLogger(DeviceManager.class);
     @Inject
     private DeviceDao deviceDao;
+
     @Inject
     private DeviceConnManager connManager;
 

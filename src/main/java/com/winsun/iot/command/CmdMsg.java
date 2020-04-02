@@ -1,5 +1,7 @@
 package com.winsun.iot.command;
 
+import java.util.concurrent.CompletableFuture;
+
 public class CmdMsg {
 
     private String topic;
@@ -7,6 +9,15 @@ public class CmdMsg {
     private EnumQoS qos;
 
     private String gatewayId;
+
+    private CompletableFuture<CmdMsg> receiveFuture;
+    private String bizId;
+
+    public CmdMsg(String topic, String data, EnumQoS qos) {
+        this.topic = topic;
+        this.data = data;
+        this.qos = qos;
+    }
 
     public CmdMsg(String topic, String data, EnumQoS qos, String gatewayId) {
         this.topic = topic;
@@ -29,5 +40,21 @@ public class CmdMsg {
 
     public EnumQoS getQos() {
         return qos;
+    }
+
+    public CompletableFuture<CmdMsg> getReceiveFuture() {
+        return receiveFuture;
+    }
+
+    public void setReceiveFuture(CompletableFuture<CmdMsg> receiveFuture) {
+        this.receiveFuture = receiveFuture;
+    }
+
+    public void setBizId(String bizId) {
+        this.bizId = bizId;
+    }
+
+    public String getBizId() {
+        return bizId;
     }
 }

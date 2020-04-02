@@ -1,11 +1,17 @@
 package com.winsun.iot.mqtt;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.winsun.iot.command.CmdMsg;
+import com.winsun.iot.command.CmdRuleInfo;
 import com.winsun.iot.command.CommandHandler;
 import com.winsun.iot.command.EnumQoS;
+import com.winsun.iot.device.CommandServer;
+import com.winsun.iot.exception.SendException;
 import com.winsun.iot.utils.Const;
 import com.winsun.iot.utils.DateTimeUtils;
 import com.winsun.iot.utils.tree.TriaTree;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
@@ -14,13 +20,16 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
-public class MqttServer implements MqttCallback {
+public class MqttServer implements MqttCallback, CommandServer {
     private static final Logger logger = LoggerFactory.getLogger(MqttServer.class);
     private MqttConfig config;
     private MqttConnectOptions options;
     private MqttClient client;
     private String clientidPrefix ="server_";
+
+    private Consumer<CmdMsg> msgConsumer;
 
     private TriaTree<CommandHandler> cmdtree = new TriaTree<>();
     private List<CommandHandler> commandList = new ArrayList<>();
@@ -101,13 +110,18 @@ public class MqttServer implements MqttCallback {
 
     @Override
     public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
-        //
-        List<CommandHandler> cmdInfo = cmdtree.getValue(topic);
-        CmdMsg msg = new CmdMsg(topic, new String(mqttMessage.getPayload()),
+
+        String content = new String(mqttMessage.getPayload());
+        JSONObject jo= JSON.parseObject(content);
+        String signature = jo.getString("signature");
+
+        CmdMsg msg = new CmdMsg(topic, content,
                 EnumQoS.valueOf(mqttMessage.getQos()));
-        for (CommandHandler commandHandler : cmdInfo) {
-            commandHandler.getHandler().execute(topic,msg);
+        if(StringUtils.isNotEmpty(signature)){
+            msg.setBizId(signature);
         }
+
+        receive(msg);
     }
 
     @Override
@@ -115,8 +129,55 @@ public class MqttServer implements MqttCallback {
 
     }
 
-    public void start() {
+    @Override
+    public void receive(CmdMsg msg) {
+        //
+        if (this.msgConsumer != null) {
+            this.msgConsumer.accept(msg);
+        }
+        String topic = msg.getTopic();
+        List<CommandHandler> cmdInfo = cmdtree.getValue(topic);
+        for (CommandHandler commandHandler : cmdInfo) {
+            commandHandler.getHandler().execute(topic,msg);
+        }
+    }
 
+    public void start() {
         this.connect();
+    }
+
+    @Override
+    public void setReceiveMsgConsumer(Consumer<CmdMsg> cmdMsg) {
+        this.msgConsumer = cmdMsg;
+    }
+
+    public boolean canSend(){
+        return this.client.isConnected();
+    }
+
+    public boolean publish(CmdRuleInfo ruleInfo) throws MqttException {
+        CmdMsg msg = ruleInfo.getCmdMsg();
+        return publish(msg.getTopic(),msg.getData(),msg.getQos().getCode());
+    }
+
+    public boolean publish(String topic, String msg, int qos) throws SendException {
+        MqttMessage mqttMessage = new MqttMessage();
+        mqttMessage.setPayload(msg.getBytes());
+        mqttMessage.setQos(qos);
+        mqttMessage.setRetained(false);
+        MqttTopic mqttTopic = this.client.getTopic(topic);
+        if (mqttTopic != null) {
+            MqttToken token = null;
+            try {
+                token = mqttTopic.publish(mqttMessage);
+                token.waitForCompletion();
+                return token.isComplete();
+
+            } catch (MqttException e) {
+                throw new SendException(e.getMessage(),e);
+            }
+        }
+        logger.error("topic is not exits {}", topic);
+        return false;
     }
 }

@@ -269,6 +269,10 @@ public class DateTimeUtils {
         return LocalDateTime.of(LocalDate.parse(date + "01", datePlainFormatter), LocalTime.of(0, 0));
     }
 
+    public static long getMillSecond(LocalDateTime dateTime){
+        return dateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+    }
+
     public static void main(String[] args) {
         String dateTime = DateTimeUtils.formatDate(
                 DateTimeUtils.parseDateDayPlain("20200225"));
