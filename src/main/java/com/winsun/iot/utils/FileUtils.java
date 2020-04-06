@@ -51,6 +51,10 @@ public class FileUtils {
                 String fileUrl = Thread.currentThread().getContextClassLoader().getResource("").getPath();
                 fileUrl = java.net.URLDecoder.decode(fileUrl, "utf-8").substring(1) + file;
                 File f = new File(fileUrl);
+                if(!f.exists()&&fileUrl.contains("test-classes")){
+                    fileUrl = fileUrl.replaceAll("test-classes","classes");
+                    f = new File(fileUrl);
+                }
                 try (BufferedReader r = new BufferedReader(new FileReader(fileUrl))) {
                     content = r.lines().collect(Collectors.joining("\n"));
                 }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.winsun.iot.dao.CommonDao">
+  <insert id="addEvent" keyColumn="id" keyProperty="id" parameterType="com.winsun.iot.domain.LogDeviceEvents" useGeneratedKeys="true">
+    <!--@mbg.generated-->
+    insert into log_device_events (`time`, base_id, event_name, 
+      `value`)
+    values (#{time,jdbcType=TIMESTAMP}, #{baseId,jdbcType=VARCHAR}, #{eventName,jdbcType=VARCHAR}, 
+      #{value,jdbcType=LONGVARCHAR})
+  </insert>
+
+
+</mapper>

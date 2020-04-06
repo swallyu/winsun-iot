@@ -2,6 +2,7 @@ package com.winsun.iot.device;
 
 import com.winsun.iot.command.CmdMsg;
 import com.winsun.iot.command.CmdRuleInfo;
+import com.winsun.iot.command.CommandHandler;
 import com.winsun.iot.config.Config;
 import com.winsun.iot.mqtt.MqttConfig;
 import com.winsun.iot.mqtt.MqttServer;
@@ -12,10 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
@@ -33,6 +31,7 @@ public class DeviceConnManager implements Consumer<CmdMsg> {
     private int cmdTimeInterval = 300;
     private int destroySecond = 180;
 
+    private boolean isinit = false;
     private ScheduledExecutorService service;
 
     public DeviceConnManager(Config config) {
@@ -49,11 +48,23 @@ public class DeviceConnManager implements Consumer<CmdMsg> {
 
     public void init() {
         this.mqttServer = new MqttServer(new MqttConfig(config.MqttBroker(), config.MqttUserName(), config.MqttPassword()));
+        for (CommandHandler cmdHandler : cmdHandlers) {
+            this.mqttServer.addCommand(cmdHandler);
+        }
         this.commandServer = this.mqttServer;
         this.commandServer.setReceiveMsgConsumer(this);
     }
 
+    private List<CommandHandler> cmdHandlers = new ArrayList<>();
+    public void addCommand(CommandHandler handler){
+        this.cmdHandlers.add(handler);
+    }
+
     public void start() {
+        if(!isinit){
+            init();
+        }
+        logger.info("start mqtt server {}",this.mqttServer.getConfig().getBroker());
         this.mqttServer.start();
         service.scheduleAtFixedRate(new CmdSender(), 0, 50, TimeUnit.MILLISECONDS);
     }

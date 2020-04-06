@@ -27,7 +27,7 @@ public class MqttServer implements MqttCallback, CommandServer {
     private MqttConfig config;
     private MqttConnectOptions options;
     private MqttClient client;
-    private String clientidPrefix ="server_";
+    private String clientidPrefix = "server_";
 
     private Consumer<CmdMsg> msgConsumer;
 
@@ -39,21 +39,21 @@ public class MqttServer implements MqttCallback, CommandServer {
         this.options = getOptions();
     }
 
-    public void addCommand(CommandHandler commandHandler){
+    public void addCommand(CommandHandler commandHandler) {
         this.commandList.add(commandHandler);
         this.cmdtree.add(commandHandler.getTopic(), commandHandler);
-        if(client.isConnected()){
+        if (client != null && client.isConnected()) {
             subcribeTopic();
         }
     }
 
-    public void connect(){
+    public void connect() {
         try {
             String id_tmp = DateTimeUtils.formatFullStr(LocalDateTime.now());
-            logger.info("connect with cliendid :"+clientidPrefix+id_tmp);
-            client = new MqttClient(config.getBroker(), clientidPrefix+id_tmp, new MemoryPersistence());
+            logger.info("connect with cliendid :" + clientidPrefix + id_tmp);
+            client = new MqttClient(config.getBroker(), clientidPrefix + id_tmp, new MemoryPersistence());
         } catch (MqttException e) {
-            logger.error(e.getMessage(),e);
+            logger.error(e.getMessage(), e);
             return;
         }
 
@@ -61,8 +61,7 @@ public class MqttServer implements MqttCallback, CommandServer {
             client.setCallback(this);
             client.connect(options);
             //订阅消息
-            if(client.isConnected())
-            {
+            if (client.isConnected()) {
                 subcribeTopic();
             }
         } catch (Exception e) {
@@ -71,29 +70,29 @@ public class MqttServer implements MqttCallback, CommandServer {
     }
 
     private void subcribeTopic() {
-        if(commandList.size()==0){
+        if (commandList.size() == 0) {
             return;
         }
         String[] topcicFilter = new String[commandList.size()];
         int[] qos = new int[commandList.size()];
         for (int i = 0; i < commandList.size(); i++) {
-            topcicFilter[i]= commandList.get(i).getTopic();
-            qos[i]= commandList.get(i).getQos().getCode();
+            topcicFilter[i] = commandList.get(i).getTopic();
+            qos[i] = commandList.get(i).getQos().getCode();
         }
         try {
-            IMqttToken token = this.client.subscribeWithResponse(topcicFilter,qos);
-            token.waitForCompletion(5* Const.SECOND);
-            if(!token.isComplete()){
-                logger.error("subscibr topic {} fail,{}",String.join(",",topcicFilter),
+            IMqttToken token = this.client.subscribeWithResponse(topcicFilter, qos);
+            token.waitForCompletion(5 * Const.SECOND);
+            if (!token.isComplete()) {
+                logger.error("subscibr topic {} fail,{}", String.join(",", topcicFilter),
                         token.getException().getMessage());
             }
         } catch (MqttException e) {
-            logger.error(e.getMessage(),e);
+            logger.error(e.getMessage(), e);
         }
 
     }
 
-    private MqttConnectOptions getOptions(){
+    private MqttConnectOptions getOptions() {
         MqttConnectOptions options = new MqttConnectOptions();
         options.setCleanSession(true);
         options.setUserName(config.getUsername());
@@ -108,14 +107,14 @@ public class MqttServer implements MqttCallback, CommandServer {
 
     @Override
     public void connectionLost(Throwable throwable) {
-
+        logger.error("mqtt server disconnect ",throwable);
     }
 
     @Override
     public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
 
         String content = new String(mqttMessage.getPayload());
-        JSONObject jo= JSON.parseObject(content);
+        JSONObject jo = JSON.parseObject(content);
         String signature = jo.getString("signature");
         String actiontype = jo.getString("actiontype");
         CmdMsg msg = new CmdMsg(topic, content,
@@ -140,7 +139,11 @@ public class MqttServer implements MqttCallback, CommandServer {
         String topic = msg.getTopic();
         List<CommandHandler> cmdInfo = cmdtree.getValue(topic);
         for (CommandHandler commandHandler : cmdInfo) {
-            commandHandler.getHandler().execute(topic,msg);
+            try{
+                commandHandler.getHandler().execute(topic, msg);
+            }catch (Exception exc){
+                logger.error(exc.getMessage(),exc);
+            }
         }
     }
 
@@ -153,13 +156,13 @@ public class MqttServer implements MqttCallback, CommandServer {
         this.msgConsumer = cmdMsg;
     }
 
-    public boolean canSend(){
+    public boolean canSend() {
         return this.client.isConnected();
     }
 
     public boolean publish(CmdRuleInfo ruleInfo) throws MqttException {
         CmdMsg msg = ruleInfo.getCmdMsg();
-        return publish(msg.getTopic(),msg.getData(),msg.getQos().getCode());
+        return publish(msg.getTopic(), msg.getData(), msg.getQos().getCode());
     }
 
     public boolean publish(String topic, String msg, int qos) throws SendException {
@@ -176,10 +179,14 @@ public class MqttServer implements MqttCallback, CommandServer {
                 return token.isComplete();
 
             } catch (MqttException e) {
-                throw new SendException(e.getMessage(),e);
+                throw new SendException(e.getMessage(), e);
             }
         }
         logger.error("topic is not exits {}", topic);
         return false;
+    }
+
+    public MqttConfig getConfig() {
+        return config;
     }
 }

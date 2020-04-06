@@ -4,6 +4,7 @@ import ch.qos.logback.classic.util.ContextInitializer;
 import com.winsun.iot.device.DeviceManager;
 import com.winsun.iot.http.HttpServer;
 import com.winsun.iot.iocmodule.Ioc;
+import com.winsun.iot.persistence.PersistenceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +27,8 @@ public class IotApplication {
 
         DeviceManager mgr = Ioc.getInjector().getInstance(DeviceManager.class);
         mgr.start();
+
+        Ioc.getInjector().getInstance(PersistenceService.class).start();
 
         HttpServer.getInstance().start();
 

@@ -33,6 +33,7 @@
         </environment>
     </environments>
     <mappers>
-        <package name="com.winsun.iot.dao"/>
+        <mapper resource="mapper/CommonDao.xml"/>
+        <mapper resource="mapper/SysDevicesMapper.xml"/>
     </mappers>
 </configuration>
