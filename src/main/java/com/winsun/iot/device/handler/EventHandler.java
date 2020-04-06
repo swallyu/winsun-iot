@@ -76,6 +76,7 @@ public class EventHandler implements CmdHandler {
                     final String baseIdValue = baseid;
                     String value = devobjs.getJSONObject(i).getString("value");
                     String eventname = detail.getString("eventname");
+                    //后续需要修改为保存到文件，再统一入库
                     persistenceService.addAction(new Function() {
                         @Override
                         public void execute() {
