@@ -12,6 +12,7 @@ public class CmdMsg {
 
     private CompletableFuture<CmdMsg> receiveFuture;
     private String bizId;
+    private String actionType;
 
     public CmdMsg(String topic, String data, EnumQoS qos) {
         this.topic = topic;
@@ -56,5 +57,13 @@ public class CmdMsg {
 
     public String getBizId() {
         return bizId;
+    }
+
+    public void setActionType(String actionType) {
+        this.actionType = actionType;
+    }
+
+    public String getActionType() {
+        return actionType;
     }
 }

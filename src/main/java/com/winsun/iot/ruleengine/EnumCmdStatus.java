@@ -1,10 +1,13 @@
 package com.winsun.iot.ruleengine;
 
 public enum EnumCmdStatus {
+    UNKNOWN("unknown"),
     Send("send"),
     Ack("ack"),
     AckConfirm("ack_confirm"),
-    Complete("complete")
+    Complete("complete"),
+    Fail("fail"),
+
     ;
     private String value;
 
@@ -12,8 +15,8 @@ public enum EnumCmdStatus {
         this.value = value;
     }
 
-    EnumCmdStatus parseOf(String value){
-        switch (value){
+    EnumCmdStatus parseOf(String value) {
+        switch (value) {
             case "send":
                 return Send;
             case "ack":
@@ -22,6 +25,8 @@ public enum EnumCmdStatus {
                 return AckConfirm;
             case "complete":
                 return Complete;
+            case "fail":
+                return Fail;
         }
         return null;
     }

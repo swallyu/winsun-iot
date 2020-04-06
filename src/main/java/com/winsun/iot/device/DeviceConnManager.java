@@ -64,7 +64,7 @@ public class DeviceConnManager implements Consumer<CmdMsg> {
 
         //
         CmdRule cmdRule = cmdRuleInfoMap.computeIfAbsent(cmdMsg.getBizId(),k->new CmdRule(cmdMsg.getCmdMsg()));
-        cmdRule.addCmdMsg(cmdMsg);
+        cmdRule.processCmdMsg(cmdMsg);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class DeviceConnManager implements Consumer<CmdMsg> {
         String bizId = cmdMsg.getBizId();
         CmdRule cmdRule = this.cmdRuleInfoMap.get(bizId);
         if (cmdRule != null) {
-            cmdRule.addCmdMsg(new CmdRuleInfo(cmdMsg));
+            cmdRule.processCmdMsg(new CmdRuleInfo(cmdMsg));
             if(cmdRule.isComplete()){
                 cmdRule.done();
             }

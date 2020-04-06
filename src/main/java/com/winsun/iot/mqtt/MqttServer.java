@@ -71,6 +71,9 @@ public class MqttServer implements MqttCallback, CommandServer {
     }
 
     private void subcribeTopic() {
+        if(commandList.size()==0){
+            return;
+        }
         String[] topcicFilter = new String[commandList.size()];
         int[] qos = new int[commandList.size()];
         for (int i = 0; i < commandList.size(); i++) {
@@ -114,12 +117,11 @@ public class MqttServer implements MqttCallback, CommandServer {
         String content = new String(mqttMessage.getPayload());
         JSONObject jo= JSON.parseObject(content);
         String signature = jo.getString("signature");
-
+        String actiontype = jo.getString("actiontype");
         CmdMsg msg = new CmdMsg(topic, content,
                 EnumQoS.valueOf(mqttMessage.getQos()));
-        if(StringUtils.isNotEmpty(signature)){
-            msg.setBizId(signature);
-        }
+        msg.setBizId(signature);
+        msg.setActionType(actiontype);
 
         receive(msg);
     }

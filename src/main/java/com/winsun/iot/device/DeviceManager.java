@@ -19,10 +19,10 @@ public class DeviceManager {
 
     public void start(){
         connManager.start();
-        List<DeviceList> deviceLists = deviceDao.listAll();
-        for (DeviceList deviceList : deviceLists) {
-            System.out.println(deviceList.getId());
-        }
-        logger.info("device size {}",deviceLists.size());
+//        List<DeviceList> deviceLists = deviceDao.listAll();
+//        for (DeviceList deviceList : deviceLists) {
+//            System.out.println(deviceList.getId());
+//        }
+//        logger.info("device size {}",deviceLists.size());
     }
 }
