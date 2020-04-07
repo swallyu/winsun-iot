@@ -1,5 +1,6 @@
 package com.winsun.iot.persistence;
 
+import com.winsun.iot.domain.LogDeviceEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +46,7 @@ public class PersistenceService implements Runnable {
         logger.info("check data for save {}",this.sqlOptCmd.size());
         Duration duration = Duration.between(lastCheckTime,LocalDateTime.now());
 
-        if (sqlOptCmd.size() > maxBuffer || duration.toMillis() / 1000 > 10) {
+        if (sqlOptCmd.size() > maxBuffer || duration.toMillis() / 1000 > maxTime) {
             int execSize = 0;
             try {
                 logger.info("save data to database ");

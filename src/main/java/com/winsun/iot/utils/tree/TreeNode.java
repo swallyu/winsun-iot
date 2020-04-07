@@ -103,7 +103,7 @@ public class TreeNode<T> {
                     list.addAll(this.value);
                 }else{
                     this.child.forEach((k,v)->{
-                        v.getMatch(topics,list);
+                        v.getMatch(childTopics,list);
                     });
                 }
             }

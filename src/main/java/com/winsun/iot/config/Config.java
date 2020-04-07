@@ -1,5 +1,6 @@
 package com.winsun.iot.config;
 
+import com.winsun.iot.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +12,10 @@ public class Config {
 
     private static final Logger logger = LoggerFactory.getLogger(Config.class);
     private Properties prop;
+
+    public static String getMySqlLoadFilePath() {
+        return FileUtils.getProjectPath()+"/batch-data";
+    }
 
     public void load(Properties propConfig) {
         prop = propConfig;
@@ -39,6 +44,16 @@ public class Config {
 
     public String MqttPassword() {
         return getString("mqtt.password", "");
+    }
+
+    public String MqttApiHost(){
+        return getString("mqtt.api_host", "");
+    }
+    public String MqttApiUser(){
+        return getString("mqtt.dashboard_user", "");
+    }
+    public String MqttApiPwd(){
+        return getString("mqtt.dashboard_passwd", "");
     }
 
     private int getInt(String key, String defaultValue) {

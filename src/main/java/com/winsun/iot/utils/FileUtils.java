@@ -37,6 +37,8 @@ public class FileUtils {
         }
     }
 
+
+
     public static String readContent(String file) {
         String content = null;
         try {

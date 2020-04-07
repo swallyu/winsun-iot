@@ -7,6 +7,7 @@ import com.google.inject.Inject;
 import com.winsun.iot.command.CmdHandler;
 import com.winsun.iot.command.CmdMsg;
 import com.winsun.iot.dao.CommonDao;
+import com.winsun.iot.device.DeviceManager;
 import com.winsun.iot.domain.LogDeviceEvents;
 import com.winsun.iot.persistence.Function;
 import com.winsun.iot.persistence.PersistenceService;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class EventHandler implements CmdHandler {
 
@@ -26,13 +28,20 @@ public class EventHandler implements CmdHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(EventHandler.class);
 
+    @Inject
     private PersistenceService persistenceService;
-
+    @Inject
     private CommonDao dao;
+    @Inject
+    private DeviceManager deviceManager;
 
-    public EventHandler(PersistenceService persistenceService, CommonDao dao) {
+    public EventHandler() {
+    }
+
+    public EventHandler(PersistenceService persistenceService, CommonDao dao, DeviceManager deviceManager) {
         this.persistenceService = persistenceService;
         this.dao = dao;
+        this.deviceManager = deviceManager;
     }
 
     /**
@@ -76,6 +85,12 @@ public class EventHandler implements CmdHandler {
                     final String baseIdValue = baseid;
                     String value = devobjs.getJSONObject(i).getString("value");
                     String eventname = detail.getString("eventname");
+                    if (Objects.equals(eventname, "NetworkState")) {
+                        boolean updateRet = deviceManager.updateDeviceStatus(baseid,Boolean.valueOf(value));
+                        if(!updateRet){
+                            continue;
+                        }
+                    }
                     //后续需要修改为保存到文件，再统一入库
                     persistenceService.addAction(new Function() {
                         @Override

@@ -25,16 +25,16 @@ public class TriaTree<T> {
     }
 
     public static void main(String[] args) {
-        CommandHandler cmd1=new CommandHandler("/e2es/+/+", EnumQoS.Once,null);
-        CommandHandler cmd2=new CommandHandler("/e2es/#", EnumQoS.Once,null);
-        CommandHandler cmd3=new CommandHandler("/e2es/sensor/125", EnumQoS.Once,null);
-        CommandHandler cmd4=new CommandHandler("/e2es/gateway/125", EnumQoS.Once,null);
+        CommandHandler cmd1=new CommandHandler("$SYS/brokers/emqx@127.0.0.1/clients/+/connected", EnumQoS.Once,null);
+//        CommandHandler cmd2=new CommandHandler("/e2es/#", EnumQoS.Once,null);
+//        CommandHandler cmd3=new CommandHandler("/e2es/sensor/125", EnumQoS.Once,null);
+//        CommandHandler cmd4=new CommandHandler("/e2es/gateway/125", EnumQoS.Once,null);
 
         TriaTree<CommandHandler> tree = new TriaTree<>();
         tree.add(cmd1.getTopic(),cmd1);
-        tree.add(cmd2.getTopic(),cmd2);
+//        tree.add(cmd2.getTopic(),cmd2);
 
-        List<CommandHandler> commandHandlers = tree.getValue("/e2es/sensor/123");
+        List<CommandHandler> commandHandlers = tree.getValue("$SYS/brokers/emqx@127.0.0.1/clients/MQTT_FX_Client/connected");
         for (CommandHandler commandHandler : commandHandlers) {
             System.out.println(commandHandler.getTopic());
         }

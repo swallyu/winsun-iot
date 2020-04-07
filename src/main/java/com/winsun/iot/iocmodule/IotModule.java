@@ -8,7 +8,9 @@ import com.winsun.iot.device.DeviceManager;
 import com.winsun.iot.http.HttpIocModule;
 import com.winsun.iot.http.handler.HttpController;
 import com.winsun.iot.http.handler.HttpHandlerFactory;
+import com.winsun.iot.persistence.PersistenceBatchService;
 import com.winsun.iot.persistence.PersistenceService;
+import com.winsun.iot.schedule.ScheduleService;
 import com.winsun.iot.utils.FileUtils;
 
 import java.util.Set;
@@ -30,8 +32,21 @@ public class IotModule extends AbstractModule {
 
     @Provides
     @Singleton
+    ScheduleService scheduleService() {
+        ScheduleService config = new ScheduleService();
+        return config;
+    }
+
+    @Provides
+    @Singleton
     PersistenceService persistenceService() {
         PersistenceService service = new PersistenceService();
+        return service;
+    }
+    @Provides
+    @Singleton
+    PersistenceBatchService persistenceBatchService() {
+        PersistenceBatchService service = new PersistenceBatchService();
         return service;
     }
 }

@@ -8,6 +8,12 @@
     values (#{time,jdbcType=TIMESTAMP}, #{baseId,jdbcType=VARCHAR}, #{eventName,jdbcType=VARCHAR}, 
       #{value,jdbcType=LONGVARCHAR})
   </insert>
+    <select id="listDevices" resultType="com.winsun.iot.domain.SysDevices">
+      select * from sys_devices
+    </select>
+    <insert id="executeRawSql">
+      ${sql}
+    </insert>
 
 
 </mapper>
