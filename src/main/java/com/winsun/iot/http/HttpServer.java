@@ -29,7 +29,14 @@ public class HttpServer {
     }
 
     public void start() {
-        initHttpServer();
+       Thread r = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                initHttpServer();
+            }
+        });
+        r.setName("http-server");
+        r.start();
     }
 
     public void initHttpServer() {

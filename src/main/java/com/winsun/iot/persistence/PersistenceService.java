@@ -1,6 +1,6 @@
 package com.winsun.iot.persistence;
 
-import com.winsun.iot.domain.LogDeviceEvents;
+import com.winsun.iot.utils.functions.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

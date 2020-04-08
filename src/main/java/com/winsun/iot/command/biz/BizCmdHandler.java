@@ -2,6 +2,7 @@ package com.winsun.iot.command.biz;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
+import com.winsun.iot.command.CmdCallback;
 import com.winsun.iot.command.CmdMsg;
 import com.winsun.iot.command.CmdRuleInfo;
 import com.winsun.iot.device.DeviceManager;
@@ -28,8 +29,8 @@ public class BizCmdHandler {
     public BizCmdHandler() {
     }
 
-    public CmdRule addCmdRule(CmdRuleInfo cmdMsg) {
-        return cmdRuleInfoMap.computeIfAbsent(cmdMsg.getBizId(), k -> new CmdRule(cmdMsg.getCmdMsg()));
+    public CmdRule addCmdRule(CmdRuleInfo cmdMsg, CmdCallback callback) {
+        return cmdRuleInfoMap.computeIfAbsent(cmdMsg.getBizId(), k -> new CmdRule(cmdMsg.getCmdMsg(),callback));
     }
 
     public MsgConsumer getConsumer() {
@@ -48,12 +49,14 @@ public class BizCmdHandler {
                 CmdResult<CmdRuleInfo> ret = cmdRule.processCmdMsg(new CmdRuleInfo(cmdMsg));
                 if(ret.isResult()){
                     if (ret.getData() != null) {
-                        boolean send = dm.invokeCmd(ret.getData());
+                        boolean send = dm.invokeCmd(ret.getData(),null);
                         if (send && cmdRule.isComplete()) {
                             cmdRule.done();
+                            cmdRuleInfoMap.remove(bizId);
                         }
                     } else if (cmdRule.isComplete()) {
                         cmdRule.done();
+                        cmdRuleInfoMap.remove(bizId);
                     }
                 }
             }

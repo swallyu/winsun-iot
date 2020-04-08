@@ -2,6 +2,7 @@ package com.winsun.iot.iocmodule;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.winsun.iot.biz.BizIocModule;
 import com.winsun.iot.device.DeviceIocModule;
 
 public class Ioc {
@@ -12,7 +13,8 @@ public class Ioc {
         injector = Guice.createInjector(
                 new MybatisXmlModule(),
                 new IotModule(),
-                new DeviceIocModule());
+                new DeviceIocModule(),
+                new BizIocModule());
     }
 
     public static Injector getInjector() {

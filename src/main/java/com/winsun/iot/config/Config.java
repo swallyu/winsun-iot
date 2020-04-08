@@ -56,6 +56,10 @@ public class Config {
         return getString("mqtt.dashboard_passwd", "");
     }
 
+    public String RedisUrl(){
+        return getString("redis.url", "");
+    }
+
     private int getInt(String key, String defaultValue) {
         String value = prop.getProperty(key, defaultValue);
         return Integer.valueOf(value);

@@ -1,10 +1,7 @@
 package com.winsun.iot.ruleengine;
 
 import com.alibaba.fastjson.JSONObject;
-import com.winsun.iot.command.CmdFactory;
-import com.winsun.iot.command.CmdMsg;
-import com.winsun.iot.command.CmdRuleInfo;
-import com.winsun.iot.command.EnumQoS;
+import com.winsun.iot.command.*;
 import com.winsun.iot.device.DeviceConnManager;
 import com.winsun.iot.domain.CmdResult;
 import com.winsun.iot.utils.PathUtil;
@@ -38,10 +35,15 @@ public class CmdRule {
 
     private EnumCmdStatus cmdStatus;
 
-    public CmdRule(CmdMsg cmdMsg) {
+    private boolean result = false;
+
+    private CmdCallback cmdCallback;
+
+    public CmdRule(CmdMsg cmdMsg, CmdCallback callback) {
         cmdStatus = cmdMsg.getStatus();
         this.cmdMsg = cmdMsg;
         this.cmdMsgList.add(new CmdRuleInfo(cmdMsg));
+        this.cmdCallback = callback;
     }
 
     public CmdResult<CmdRuleInfo> processCmdMsg(CmdRuleInfo cmdMsg) {
@@ -53,7 +55,12 @@ public class CmdRule {
         this.cmdMsgList.add(cmdMsg);
 
         int stage = cmdMsg.getCmdMsg().getStatus().getCode();
-        if(stage<=this.cmdStatus.getCode()){
+        if (this.cmdMsg.getQos().getCode() == stage) {
+            cmdStatus = EnumCmdStatus.parseOf(stage);
+            this.result = cmdMsg.getCmdMsg().getData().getBoolean("result");
+            return new CmdResult<>(0, true, null, null);
+        }
+        if (stage <= this.cmdStatus.getCode()) {
             return new CmdResult<>(-1, false, "重复的stage", null);
         }
         cmdStatus = cmdMsg.getCmdMsg().getStatus();
@@ -64,9 +71,10 @@ public class CmdRule {
         }
         String topic = this.cmdMsg.getTopic();
         String gatewayId = PathUtil.getPathLast(topic);
+        this.result = true;
         JSONObject resp = CmdFactory.buildBizCmdResp(cmdMsg.getBizId(), EnumCmdStatus.parseOf(newStage), true);
         CmdMsg msg = new CmdMsg(topic,
-                resp, EnumQoS.ExtractOnce);
+                resp, this.cmdMsg.getQos());
         msg.setBizId(cmdMsg.getBizId());
         msg.setGatewayId(gatewayId);
 
@@ -95,10 +103,17 @@ public class CmdRule {
             return false;
         }
         logger.info("the biz command is complete {}", this.cmdMsg.getBizId());
+        if (cmdCallback != null) {
+            cmdCallback.complete(this.cmdMsg.getBizId(), this);
+        }
         return true;
     }
 
-    private CmdRuleInfo getLastMsg() {
+    public boolean isResult() {
+        return result;
+    }
+
+    public CmdRuleInfo getLastMsg() {
         return this.cmdMsgList.size() > 0 ? this.cmdMsgList.get(cmdMsgList.size() - 1) : null;
     }
 }

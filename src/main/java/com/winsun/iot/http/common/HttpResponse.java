@@ -1,6 +1,8 @@
 package com.winsun.iot.http.common;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.winsun.iot.domain.CmdResult;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -32,10 +34,16 @@ public class HttpResponse {
         if(msg instanceof String){
             write((String)msg);
         }else{
-            String sendMsg = JSON.toJSONString(msg);
+            String sendMsg = JSON.toJSONString(msg, SerializerFeature.WriteMapNullValue,SerializerFeature.QuoteFieldNames);
             write(sendMsg);
         }
     }
+
+    public void write(int code,String msg,Object data) {
+        CmdResult<Object> r = new CmdResult<>(code,true,msg,data);
+        write(r);
+    }
+
     public void write(String msg) {
         byte[] bs= null;
         try {

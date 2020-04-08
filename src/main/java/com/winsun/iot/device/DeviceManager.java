@@ -3,10 +3,7 @@ package com.winsun.iot.device;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
-import com.winsun.iot.command.CmdMsg;
-import com.winsun.iot.command.CmdRuleInfo;
-import com.winsun.iot.command.CommandHandler;
-import com.winsun.iot.command.EnumQoS;
+import com.winsun.iot.command.*;
 import com.winsun.iot.command.biz.BizCmdHandler;
 import com.winsun.iot.config.Config;
 import com.winsun.iot.dao.CommonDao;
@@ -212,7 +209,8 @@ public class DeviceManager {
         return this.deviceInfoMap.get(baseid);
     }
 
-    public CmdResult<Object> invokeCmd(String topic, EnumQoS qos, String msgtype, String baseId, JSONObject cmdObj) {
+    public CmdResult<String> invokeCmd(String topic, EnumQoS qos,
+                                       String msgtype, String baseId, JSONObject cmdObj, CmdCallback callback) {
         String dstTopic = topic + "/" + baseId;
 
         String sig = RandomString.getRandomString(16);
@@ -227,18 +225,18 @@ public class DeviceManager {
         detail.put("detail", cmdObj);
         ringMsgobj.put("msg", detail);
 
-        CmdMsg msg = new CmdMsg(dstTopic, ringMsgobj, EnumQoS.ExtractOnce);
+        CmdMsg msg = new CmdMsg(dstTopic, ringMsgobj, qos);
         msg.setBizId(sig);
         msg.setGatewayId(baseId);
         msg.setStatus(EnumCmdStatus.Stage_0);
-        connManager.sendCmd(new CmdRuleInfo(msg));
+        connManager.sendCmd(new CmdRuleInfo(msg),callback);
 
-        CmdResult<Object> result = new CmdResult<>(0, true, "发送控制命令成功", sig);
+        CmdResult<String> result = new CmdResult<>(0, true, "发送控制命令成功", sig);
         return result;
     }
 
-    public boolean invokeCmd(CmdRuleInfo data) {
-        connManager.sendCmd(data);
+    public boolean invokeCmd(CmdRuleInfo data, CmdCallback callback) {
+        connManager.sendCmd(data,callback);
         return true;
     }
 }

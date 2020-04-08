@@ -25,12 +25,17 @@ public class IotApplication {
 
         logger.info("service start success !~");
 
-        DeviceManager mgr = Ioc.getInjector().getInstance(DeviceManager.class);
-        mgr.start();
+       try{
+           Ioc.getInjector().getInstance(PersistenceService.class).start();
+           HttpServer.getInstance().start();
 
-        Ioc.getInjector().getInstance(PersistenceService.class).start();
+           DeviceManager mgr = Ioc.getInjector().getInstance(DeviceManager.class);
+           mgr.start();
 
-        HttpServer.getInstance().start();
+
+       }catch (Exception exc){
+           logger.error(exc.getMessage(),exc);
+       }
 
         addHook();
         //主线程阻塞等待，守护线程释放锁后退出

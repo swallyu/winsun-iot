@@ -9,4 +9,5 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 public @interface HttpMap {
     String value() ;
+    HttpMethod method() default HttpMethod.ALL;
 }

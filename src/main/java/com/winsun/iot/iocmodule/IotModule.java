@@ -6,20 +6,25 @@ import com.google.inject.Singleton;
 import com.winsun.iot.config.Config;
 import com.winsun.iot.device.DeviceManager;
 import com.winsun.iot.http.HttpIocModule;
-import com.winsun.iot.http.handler.HttpController;
-import com.winsun.iot.http.handler.HttpHandlerFactory;
 import com.winsun.iot.persistence.PersistenceBatchService;
 import com.winsun.iot.persistence.PersistenceService;
+import com.winsun.iot.persistence.redis.RedisService;
+import com.winsun.iot.persistence.redis.RedisServiceImpl;
 import com.winsun.iot.schedule.ScheduleService;
 import com.winsun.iot.utils.FileUtils;
-
-import java.util.Set;
 
 public class IotModule extends AbstractModule {
     @Override
     protected void configure() {
         install(new HttpIocModule());
         bind(DeviceManager.class).toInstance(new DeviceManager());
+    }
+
+    @Provides
+    @Singleton
+    RedisService redisService(Config config) {
+        RedisService service = new RedisServiceImpl(config.RedisUrl());
+        return service;
     }
 
     @Provides

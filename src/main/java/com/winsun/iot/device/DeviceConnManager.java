@@ -2,6 +2,7 @@ package com.winsun.iot.device;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
+import com.winsun.iot.command.CmdCallback;
 import com.winsun.iot.command.CmdMsg;
 import com.winsun.iot.command.CmdRuleInfo;
 import com.winsun.iot.command.CommandHandler;
@@ -78,12 +79,12 @@ public class DeviceConnManager {
         service.scheduleAtFixedRate(new CmdSender(), 0, 50, TimeUnit.MILLISECONDS);
     }
 
-    public void sendCmd(CmdRuleInfo cmdMsg) {
+    public void sendCmd(CmdRuleInfo cmdMsg, CmdCallback cmdCallback) {
         CmdQueue queue = gatewayCmdQueue.computeIfAbsent(cmdMsg.getCmdMsg().getGatewayId(),
                 k -> new CmdQueue(cmdTimeInterval, destroySecond));
         queue.offerQueue(cmdMsg);
 
-        CmdRule cmdRule = bizCmdHandler.addCmdRule(cmdMsg);
+        CmdRule cmdRule = bizCmdHandler.addCmdRule(cmdMsg,cmdCallback);
 
     }
 

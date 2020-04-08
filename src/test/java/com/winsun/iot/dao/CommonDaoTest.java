@@ -22,4 +22,5 @@ public class CommonDaoTest {
 
         System.out.println("ret="+ret+"\t"+events.getId());
     }
+
 }
