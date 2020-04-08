@@ -46,7 +46,7 @@ public class ConnectHandler implements CmdHandler {
     public void execute(String topic, CmdMsg data) {
 
         String gateway = PathUtil.getPath(topic, 4);
-        JSONObject msg = JSONObject.parseObject(data.getData());
+        JSONObject msg = data.getData();
 
         boolean isonline = true;
         if(topic.contains("disconnected")){

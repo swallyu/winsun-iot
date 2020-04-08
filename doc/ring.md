@@ -1,0 +1,23 @@
+1、业务闭环格式 
+```json
+{
+ "sig":"58r4g35f4ds3",
+ "qos":1,
+ "stage":0,
+ "initiator":"cloud/gw",
+ "result":false,
+ "msg":{
+  "type":"control",
+  "detail":""
+ }
+}
+```
+
+回复
+```json
+{
+ "sig":"58r4g35f4ds3",
+ "stage":0,
+ "result":false
+}
+```

@@ -1,5 +1,7 @@
 package com.winsun.iot.http.common;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
@@ -59,6 +61,9 @@ public class HttpRequestWrapper {
         return body;
     }
 
+    public JSONObject getBodyAsJson(){
+        return JSON.parseObject(body);
+    }
     public String getUri(){
         return request.uri();
     }

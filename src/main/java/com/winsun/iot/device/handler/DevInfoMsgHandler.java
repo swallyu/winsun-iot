@@ -62,7 +62,7 @@ public class DevInfoMsgHandler implements CmdHandler {
     @Override
     public void execute(String topic, CmdMsg data) {
 
-        JSONObject msg = JSONObject.parseObject(data.getData());
+        JSONObject msg = data.getData();
         String msgtype = msg.getString("Msg_Type");
         JSONObject detail = msg.getJSONObject("detail");
         if (msgtype != null && detail != null) {

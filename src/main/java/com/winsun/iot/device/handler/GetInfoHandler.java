@@ -52,7 +52,7 @@ public class GetInfoHandler implements CmdHandler {
     @Override
     public void execute(String topic, CmdMsg data) {
 
-        JSONObject msg = JSONObject.parseObject(data.getData());
+        JSONObject msg = data.getData();
         String getinfotype = msg.getString("getinfoType");
         JSONObject detail = msg.getJSONObject("detail");
 

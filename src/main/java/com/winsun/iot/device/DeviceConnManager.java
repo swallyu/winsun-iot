@@ -1,12 +1,16 @@
 package com.winsun.iot.device;
 
+import com.alibaba.fastjson.JSONObject;
+import com.google.inject.Inject;
 import com.winsun.iot.command.CmdMsg;
 import com.winsun.iot.command.CmdRuleInfo;
 import com.winsun.iot.command.CommandHandler;
+import com.winsun.iot.command.biz.BizCmdHandler;
 import com.winsun.iot.config.Config;
 import com.winsun.iot.mqtt.MqttConfig;
 import com.winsun.iot.mqtt.MqttServer;
 import com.winsun.iot.ruleengine.CmdRule;
+import com.winsun.iot.utils.MsgConsumer;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,16 +21,15 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
-public class DeviceConnManager implements Consumer<CmdMsg> {
+public class DeviceConnManager {
     private static final Logger logger = LoggerFactory.getLogger(DeviceConnManager.class);
     private MqttServer mqttServer;
 
     private CommandServer commandServer;
 
-    private Config config;
 
     private Map<String, CmdQueue> gatewayCmdQueue = new ConcurrentHashMap<>();
-    private Map<String, CmdRule> cmdRuleInfoMap = new HashMap<>();
+
 
     private int cmdTimeInterval = 300;
     private int destroySecond = 180;
@@ -34,8 +37,13 @@ public class DeviceConnManager implements Consumer<CmdMsg> {
     private boolean isinit = false;
     private ScheduledExecutorService service;
 
-    public DeviceConnManager(Config config) {
+    private BizCmdHandler bizCmdHandler;
+
+    private Config config;
+
+    public DeviceConnManager(Config config,BizCmdHandler handler) {
         this.config = config;
+        this.bizCmdHandler = handler;
         service = Executors.newScheduledThreadPool(2, new ThreadFactory() {
             @Override
             public Thread newThread(Runnable r) {
@@ -46,70 +54,66 @@ public class DeviceConnManager implements Consumer<CmdMsg> {
         });
     }
 
-    public void init() {
+    private void init() {
         this.mqttServer = new MqttServer(new MqttConfig(config.MqttBroker(), config.MqttUserName(), config.MqttPassword()));
         for (CommandHandler cmdHandler : cmdHandlers) {
             this.mqttServer.addCommand(cmdHandler);
         }
         this.commandServer = this.mqttServer;
-        this.commandServer.setReceiveMsgConsumer(this);
+        this.commandServer.setReceiveMsgConsumer(bizCmdHandler.getConsumer());
     }
 
     private List<CommandHandler> cmdHandlers = new ArrayList<>();
-    public void addCommand(CommandHandler handler){
+
+    public void addCommand(CommandHandler handler) {
         this.cmdHandlers.add(handler);
     }
 
     public void start() {
-        if(!isinit){
+        if (!isinit) {
             init();
         }
-        logger.info("start mqtt server {}",this.mqttServer.getConfig().getBroker());
+        logger.info("start mqtt server {}", this.mqttServer.getConfig().getBroker());
         this.mqttServer.start();
         service.scheduleAtFixedRate(new CmdSender(), 0, 50, TimeUnit.MILLISECONDS);
     }
 
     public void sendCmd(CmdRuleInfo cmdMsg) {
-        CmdQueue queue = gatewayCmdQueue.computeIfAbsent(cmdMsg.getCmdMsg().getGatewayId(), k -> new CmdQueue(cmdTimeInterval, destroySecond));
+        CmdQueue queue = gatewayCmdQueue.computeIfAbsent(cmdMsg.getCmdMsg().getGatewayId(),
+                k -> new CmdQueue(cmdTimeInterval, destroySecond));
         queue.offerQueue(cmdMsg);
 
-        //
-        CmdRule cmdRule = cmdRuleInfoMap.computeIfAbsent(cmdMsg.getBizId(),k->new CmdRule(cmdMsg.getCmdMsg()));
-        cmdRule.processCmdMsg(cmdMsg);
+        CmdRule cmdRule = bizCmdHandler.addCmdRule(cmdMsg);
+
     }
 
-    @Override
-    public void accept(CmdMsg cmdMsg) {
-        String bizId = cmdMsg.getBizId();
-        CmdRule cmdRule = this.cmdRuleInfoMap.get(bizId);
-        if (cmdRule != null) {
-            cmdRule.processCmdMsg(new CmdRuleInfo(cmdMsg));
-            if(cmdRule.isComplete()){
-                cmdRule.done();
-            }
-        }
-    }
 
     private class CmdSender implements Runnable {
 
         @Override
         public void run() {
 
-            Iterator<Map.Entry<String, CmdQueue>> iter = gatewayCmdQueue.entrySet().iterator();
-            while (iter.hasNext()) {
-                Map.Entry<String, CmdQueue> queue = iter.next();
-                if (queue.getValue().canDestroy()) {
-                    iter.remove();
-                }
-                if (queue.getValue().canPullAndSend() && mqttServer.canSend()) {
-                    boolean sendSuc = false;
-                    try {
-                        CmdRuleInfo msg = queue.getValue().pull();
-                        sendSuc = mqttServer.publish(msg);
-                    } catch (MqttException e) {
-                        logger.error(e.getMessage(), e);
+            try {
+                Iterator<Map.Entry<String, CmdQueue>> iter = gatewayCmdQueue.entrySet().iterator();
+                while (iter.hasNext()) {
+                    Map.Entry<String, CmdQueue> queue = iter.next();
+                    if (queue.getValue().canDestroy()) {
+                        iter.remove();
+                    }
+                    if (queue.getValue().canPullAndSend() && mqttServer.canSend()) {
+                        boolean sendSuc = false;
+                        try {
+                            CmdRuleInfo msg = queue.getValue().pull();
+                            if (msg != null) {
+                                sendSuc = mqttServer.publish(msg);
+                            }
+                        } catch (MqttException e) {
+                            logger.error(e.getMessage(), e);
+                        }
                     }
                 }
+            } catch (Exception exc) {
+                logger.error(exc.getMessage(), exc);
             }
         }
     }
@@ -128,6 +132,7 @@ public class DeviceConnManager implements Consumer<CmdMsg> {
         public CmdQueue(int millsecondInterval, int destroySecond) {
             this.millsecondInterval = millsecondInterval;
             this.destroySecond = destroySecond;
+            this.lastTime = LocalDateTime.now();
         }
 
         public void offerQueue(CmdRuleInfo cmdMsg) {
@@ -144,12 +149,12 @@ public class DeviceConnManager implements Consumer<CmdMsg> {
          * @return
          */
         public boolean canPullAndSend() {
-            Duration duration = Duration.between(LocalDateTime.now(), lastTime);
+            Duration duration = Duration.between(lastTime, LocalDateTime.now());
             return duration.toMillis() > millsecondInterval;
         }
 
         public boolean canDestroy() {
-            Duration duration = Duration.between(LocalDateTime.now(), lastTime);
+            Duration duration = Duration.between(lastTime, LocalDateTime.now());
             return duration.toMillis() > destroySecond * 1000 && this.cmdQueue.isEmpty();
         }
     }

@@ -3,16 +3,22 @@ package com.winsun.iot.device;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
+import com.winsun.iot.command.CmdMsg;
+import com.winsun.iot.command.CmdRuleInfo;
 import com.winsun.iot.command.CommandHandler;
 import com.winsun.iot.command.EnumQoS;
+import com.winsun.iot.command.biz.BizCmdHandler;
 import com.winsun.iot.config.Config;
 import com.winsun.iot.dao.CommonDao;
 import com.winsun.iot.device.handler.*;
+import com.winsun.iot.domain.CmdResult;
 import com.winsun.iot.domain.DeviceInfo;
 import com.winsun.iot.domain.SysDevices;
 import com.winsun.iot.iocmodule.Ioc;
+import com.winsun.iot.ruleengine.EnumCmdStatus;
 import com.winsun.iot.utils.DateTimeUtils;
 import com.winsun.iot.utils.HttpClientUtil;
+import com.winsun.iot.utils.RandomString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +40,9 @@ public class DeviceManager {
 
     @Inject
     private Config config;
+
+    @Inject
+    private BizCmdHandler bizCmdHandler;
 
     private Map<String, DeviceInfo> deviceInfoMap = new ConcurrentHashMap<>();
 
@@ -57,6 +66,9 @@ public class DeviceManager {
 
         connManager.addCommand(new CommandHandler(GetInfoHandler.TOPIC, EnumQoS.valueOf(GetInfoHandler.QOS),
                 Ioc.getInjector().getInstance(GetInfoHandler.class)));
+
+        connManager.addCommand(new CommandHandler(ResponseHandler.TOPIC, EnumQoS.valueOf(ResponseHandler.QOS),
+                Ioc.getInjector().getInstance(ResponseHandler.class)));
 
         connManager.start();
 
@@ -107,7 +119,7 @@ public class DeviceManager {
                 if (items == null) {
                     items = jo.getJSONArray("data");
                 }
-                if(items==null){
+                if (items == null) {
                     break;
                 }
                 if (items != null) {
@@ -132,17 +144,18 @@ public class DeviceManager {
 
     /**
      * 周期传感器数据
+     *
      * @param baseid
      * @param stssensordata
      * @return
      */
     public boolean receiveStsSensorDataFromMqtt(String baseid, JSONObject stssensordata) {
         DeviceInfo deviceInfo = deviceInfoMap.get(baseid);
-        if(deviceInfo==null){
+        if (deviceInfo == null) {
             return false;
         }
         if (stssensordata == null) {
-            logger.error("，设备:" + baseid + "当前时间 " + DateTimeUtils.formatFullStr(LocalDateTime.now())+ "，数据为空:");
+            logger.error("，设备:" + baseid + "当前时间 " + DateTimeUtils.formatFullStr(LocalDateTime.now()) + "，数据为空:");
             return false;
         }
         boolean saveSuc = deviceInfo.updateStsSensorDataAndPull2DB(stssensordata);
@@ -156,16 +169,17 @@ public class DeviceManager {
 
     /**
      * 实时传感器数据
+     *
      * @param baseid
      * @param stssensordata
      */
     public boolean receiveRealitySensorDataFromMqtt(String baseid, JSONObject stssensordata) {
         DeviceInfo deviceInfo = deviceInfoMap.get(baseid);
-        if(deviceInfo==null){
+        if (deviceInfo == null) {
             return false;
         }
         if (stssensordata == null) {
-            logger.error("，设备:" + baseid + "当前时间 " + DateTimeUtils.formatFullStr(LocalDateTime.now())+ "，数据为空:");
+            logger.error("，设备:" + baseid + "当前时间 " + DateTimeUtils.formatFullStr(LocalDateTime.now()) + "，数据为空:");
             return false;
         }
         boolean saveSuc = deviceInfo.updateRealitySensorDataAndPull2DB(stssensordata);
@@ -179,7 +193,7 @@ public class DeviceManager {
 
     private boolean isDevOnLine(String gatewayid) {
         DeviceInfo info = this.deviceInfoMap.get(gatewayid);
-        if(info!=null){
+        if (info != null) {
             return info.isOnline();
         }
         return false;
@@ -196,5 +210,35 @@ public class DeviceManager {
 
     public DeviceInfo getDeviceObj(String baseid) {
         return this.deviceInfoMap.get(baseid);
+    }
+
+    public CmdResult<Object> invokeCmd(String topic, EnumQoS qos, String msgtype, String baseId, JSONObject cmdObj) {
+        String dstTopic = topic + "/" + baseId;
+
+        String sig = RandomString.getRandomString(16);
+        JSONObject ringMsgobj = new JSONObject();
+        ringMsgobj.put("sig", sig);
+        ringMsgobj.put("qos", qos.getCode());
+        ringMsgobj.put("stage", 0);
+        ringMsgobj.put("initiator", "cloud/gw");
+        ringMsgobj.put("result", false);
+        JSONObject detail = new JSONObject();
+        detail.put("type", msgtype);
+        detail.put("detail", cmdObj);
+        ringMsgobj.put("msg", detail);
+
+        CmdMsg msg = new CmdMsg(dstTopic, ringMsgobj, EnumQoS.ExtractOnce);
+        msg.setBizId(sig);
+        msg.setGatewayId(baseId);
+        msg.setStatus(EnumCmdStatus.Stage_0);
+        connManager.sendCmd(new CmdRuleInfo(msg));
+
+        CmdResult<Object> result = new CmdResult<>(0, true, "发送控制命令成功", sig);
+        return result;
+    }
+
+    public boolean invokeCmd(CmdRuleInfo data) {
+        connManager.sendCmd(data);
+        return true;
     }
 }

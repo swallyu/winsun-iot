@@ -61,7 +61,7 @@ public class SensorHandler implements CmdHandler {
     @Override
     public void execute(String topic, CmdMsg data) {
         String gateway = PathUtil.getPath(topic, 4);
-        JSONObject msg = JSONObject.parseObject(data.getData());
+        JSONObject msg = data.getData();
 
         JSONObject datatemp = msg.getJSONObject("data");
         String baseid = datatemp.getString("baseid");

@@ -2,6 +2,8 @@ package com.winsun.iot.command;
 
 import com.alibaba.fastjson.JSONObject;
 import com.winsun.iot.domain.DeviceInfo;
+import com.winsun.iot.ruleengine.EnumCmdStatus;
+import com.winsun.iot.utils.RandomString;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,6 +11,31 @@ import java.util.List;
 import java.util.Map;
 
 public class CmdFactory {
+
+    public static JSONObject buildBizCmd(String sig,EnumQoS qos,String msgtype,JSONObject cmdObj){
+        JSONObject ringMsgobj = new JSONObject();
+        ringMsgobj.put("sig", sig);
+        ringMsgobj.put("qos", qos.getCode());
+        ringMsgobj.put("stage", 0);
+        ringMsgobj.put("initiator", "cloud/gw");
+        ringMsgobj.put("result", false);
+        JSONObject detail = new JSONObject();
+        detail.put("type", msgtype);
+        detail.put("detail", cmdObj);
+        ringMsgobj.put("msg", detail);
+
+        return ringMsgobj;
+    }
+
+    public static JSONObject buildBizCmdResp(String sig, EnumCmdStatus status,boolean result){
+        JSONObject ringMsgobj = new JSONObject();
+        ringMsgobj.put("sig", sig);
+        ringMsgobj.put("stage", status.getCode());
+        ringMsgobj.put("result", result);
+
+        return ringMsgobj;
+    }
+
     public static JSONObject buildAddPairedDev(String baseid, String devicetype, String hwversion, String swversion,
                                                Boolean sensoruploadreality, Boolean autoCtrl, DeviceInfo deviceObj) {
 //        String luatVersion = deviceObj.getBaseinfo().getLuatVersion();

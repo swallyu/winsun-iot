@@ -10,6 +10,7 @@ import com.winsun.iot.device.CommandServer;
 import com.winsun.iot.exception.SendException;
 import com.winsun.iot.utils.Const;
 import com.winsun.iot.utils.DateTimeUtils;
+import com.winsun.iot.utils.MsgConsumer;
 import com.winsun.iot.utils.tree.TriaTree;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.paho.client.mqttv3.*;
@@ -29,7 +30,7 @@ public class MqttServer implements MqttCallback, CommandServer {
     private MqttClient client;
     private String clientidPrefix = "server_";
 
-    private Consumer<CmdMsg> msgConsumer;
+    private MsgConsumer msgConsumer;
 
     private TriaTree<CommandHandler> cmdtree = new TriaTree<>();
     private List<CommandHandler> commandList = new ArrayList<>();
@@ -115,13 +116,9 @@ public class MqttServer implements MqttCallback, CommandServer {
 
         String content = new String(mqttMessage.getPayload());
         JSONObject jo = JSON.parseObject(content);
-        String signature = jo.getString("signature");
-        String actiontype = jo.getString("actiontype");
-        CmdMsg msg = new CmdMsg(topic, content,
-                EnumQoS.valueOf(mqttMessage.getQos()));
-        msg.setBizId(signature);
-        msg.setActionType(actiontype);
 
+        CmdMsg msg = new CmdMsg(topic, jo,
+                EnumQoS.valueOf(mqttMessage.getQos()));
         receive(msg);
     }
 
@@ -134,7 +131,7 @@ public class MqttServer implements MqttCallback, CommandServer {
     public void receive(CmdMsg msg) {
         //
         if (this.msgConsumer != null) {
-            this.msgConsumer.accept(msg);
+            this.msgConsumer.before(msg);
         }
         String topic = msg.getTopic();
         List<CommandHandler> cmdInfo = cmdtree.getValue(topic);
@@ -145,6 +142,9 @@ public class MqttServer implements MqttCallback, CommandServer {
                 logger.error(exc.getMessage(),exc);
             }
         }
+        if (this.msgConsumer != null) {
+            this.msgConsumer.after(msg);
+        }
     }
 
     public void start() {
@@ -152,7 +152,7 @@ public class MqttServer implements MqttCallback, CommandServer {
     }
 
     @Override
-    public void setReceiveMsgConsumer(Consumer<CmdMsg> cmdMsg) {
+    public void setReceiveMsgConsumer(MsgConsumer cmdMsg) {
         this.msgConsumer = cmdMsg;
     }
 
@@ -162,7 +162,7 @@ public class MqttServer implements MqttCallback, CommandServer {
 
     public boolean publish(CmdRuleInfo ruleInfo) throws MqttException {
         CmdMsg msg = ruleInfo.getCmdMsg();
-        return publish(msg.getTopic(), msg.getData(), msg.getQos().getCode());
+        return publish(msg.getTopic(), msg.getData().toJSONString(), msg.getQos().getCode());
     }
 
     public boolean publish(String topic, String msg, int qos) throws SendException {

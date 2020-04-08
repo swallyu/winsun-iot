@@ -63,7 +63,7 @@ public class EventHandler implements CmdHandler {
     @Override
     public void execute(String topic, CmdMsg data) {
         String gateway = PathUtil.getPath(topic, 4);
-        JSONObject msg = JSONObject.parseObject(data.getData());
+        JSONObject msg = data.getData();
 
         String Msg_Type = msg.getString("Msg_Type");
         switch (Msg_Type) {
