@@ -39,7 +39,13 @@ public class RedisServiceImpl implements RedisService {
     }
 
     @Override
+    public boolean isConnect(){
+        return redisCommands!=null;
+    }
+
+    @Override
     public boolean set(String key, String value) {
-        return false;
+        redisCommands.set(key,value);
+        return true;
     }
 }
