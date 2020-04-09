@@ -1,0 +1,28 @@
+{
+  "routeID" : "sensordata",
+  "data" : {
+    "baseid" : "00124B001A0958B6",
+    "Time" : "2020-04-09 11:53:01",
+    "period" : 60,
+    "Sensors" : {
+      "Humidity" : {
+        "max" : 35,
+        "min" : 35,
+        "count" : 6,
+        "avg" : 35
+      },
+      "Temp" : {
+        "max" : 27,
+        "min" : 27,
+        "count" : 6,
+        "avg" : 27
+      },
+      "Rssi" : {
+        "max" : -41,
+        "min" : -100,
+        "count" : 6,
+        "avg" : -88.333333333333
+      }
+    }
+  }
+}

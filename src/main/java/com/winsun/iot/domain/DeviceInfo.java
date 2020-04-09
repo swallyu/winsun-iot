@@ -10,7 +10,7 @@ public class DeviceInfo {
 
     private SysDevices device;
 
-    private DeviceSensorData sensorData;
+    private DeviceSensorData sensorData=new DeviceSensorData(1);
 
     private ConcurrentHashMap<String,String> controlp = new ConcurrentHashMap<String,String>();			//设备目标控制参数，控制参数主要是on/off
     private ConcurrentHashMap<String,String> controlrealityp = new ConcurrentHashMap<String,String>();			//设备实际控制参数，控制参数主要是on/off

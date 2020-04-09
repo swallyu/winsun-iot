@@ -2,18 +2,23 @@ package com.winsun.iot.device.handler;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
+import com.winsun.iot.command.CmdCallback;
 import com.winsun.iot.command.CmdHandler;
 import com.winsun.iot.command.CmdMsg;
+import com.winsun.iot.command.CmdRuleInfo;
+import com.winsun.iot.command.biz.BizCmdHandler;
 import com.winsun.iot.dao.CommonDao;
 import com.winsun.iot.device.DeviceManager;
 import com.winsun.iot.domain.DeviceInfo;
 import com.winsun.iot.persistence.PersistenceService;
+import com.winsun.iot.ruleengine.CmdRule;
+import com.winsun.iot.utils.PathUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GetInfoHandler implements CmdHandler {
 
-    public static final String TOPIC = "/E2ES/GateWay/GetInfo";
+    public static final String TOPIC = "/E2ES/GateWay/GetInfo/+";
 
     public static final int QOS = 1;
 
@@ -26,6 +31,8 @@ public class GetInfoHandler implements CmdHandler {
     @Inject
     private DeviceManager deviceManager;
 
+    @Inject
+    private BizCmdHandler cmdHandler;
     public GetInfoHandler() {
     }
 
@@ -52,14 +59,28 @@ public class GetInfoHandler implements CmdHandler {
     @Override
     public void execute(String topic, CmdMsg data) {
 
-        JSONObject msg = data.getData();
-        String getinfotype = msg.getString("getinfoType");
-        JSONObject detail = msg.getJSONObject("detail");
+        cmdHandler.addCmdRule(new CmdRuleInfo(data),new InnerCmdCallBack());
+//        JSONObject msg = data.getData();
+//        String getinfotype = msg.getString("getinfoType");
+//        JSONObject detail = msg.getJSONObject("detail");
+//
+//        switch (getinfotype) {
+//            case "getdevinfo":
+//                processGetDevInfo(detail);
+//                break;
+//        }
+    }
 
-        switch (getinfotype) {
-            case "getdevinfo":
-                processGetDevInfo(detail);
-                break;
+    private class InnerCmdCallBack implements CmdCallback {
+
+        @Override
+        public void complete(String bizId, CmdRule cmdMsg) {
+
+        }
+
+        @Override
+        public String getRespTopic(CmdMsg cmdMsg) {
+            return "/E2ES/GateWay/Config/Response/"+ PathUtil.getPathLast(cmdMsg.getTopic());
         }
     }
 

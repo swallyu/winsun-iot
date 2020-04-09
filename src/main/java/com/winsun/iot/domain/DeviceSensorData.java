@@ -180,11 +180,12 @@ public class DeviceSensorData {
         }
 
         public JSONObject pullStatisticsData() {
+
             Map<String,Object> data = new HashMap<>();
             this.datastatistics.forEach(data::put);
             JSONObject jo = new JSONObject(data);
 
-            return null;
+            return jo;
         }
     }
 

@@ -4,6 +4,7 @@ import ch.qos.logback.classic.util.ContextInitializer;
 import com.winsun.iot.device.DeviceManager;
 import com.winsun.iot.http.HttpServer;
 import com.winsun.iot.iocmodule.Ioc;
+import com.winsun.iot.persistence.PersistenceBatchService;
 import com.winsun.iot.persistence.PersistenceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +28,19 @@ public class IotApplication {
 
        try{
            Ioc.getInjector().getInstance(PersistenceService.class).start();
+           Ioc.getInjector().getInstance(PersistenceBatchService.class).start();
            HttpServer.getInstance().start();
 
            DeviceManager mgr = Ioc.getInjector().getInstance(DeviceManager.class);
            mgr.start();
 
+           Ioc.getInjector().getInstance(PersistenceBatchService.class)
+                   .addTask("data_sensor",
+                           new String[]{"baseID","time","period","sensordata"});
+
+           Ioc.getInjector().getInstance(PersistenceBatchService.class)
+                   .addTask("data_sensor_real",
+                           new String[]{"baseID","time","period","sensordata"});
 
        }catch (Exception exc){
            logger.error(exc.getMessage(),exc);

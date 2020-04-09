@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.winsun.iot.command.CmdCallback;
 import com.winsun.iot.command.CmdMsg;
 import com.winsun.iot.command.CmdRuleInfo;
+import com.winsun.iot.command.EnumQoS;
 import com.winsun.iot.device.DeviceManager;
 import com.winsun.iot.domain.CmdResult;
 import com.winsun.iot.ruleengine.CmdRule;
@@ -70,6 +71,11 @@ public class BizCmdHandler {
                 int stage = data.getInteger("stage");
                 cmdMsg.setStatus(EnumCmdStatus.parseOf(stage));
                 cmdMsg.setBizId(signature);
+
+                if(data.containsKey("qos")){
+                    int qos = data.getInteger("qos");
+                    cmdMsg.setQos(EnumQoS.valueOf(qos));
+                }
             }
         }
     }

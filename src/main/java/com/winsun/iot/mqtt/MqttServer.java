@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class MqttServer implements MqttCallback, CommandServer {
+public class MqttServer implements MqttCallbackExtended, CommandServer {
     private static final Logger logger = LoggerFactory.getLogger(MqttServer.class);
     private MqttConfig config;
     private MqttConnectOptions options;
@@ -61,10 +61,7 @@ public class MqttServer implements MqttCallback, CommandServer {
         try {
             client.setCallback(this);
             client.connect(options);
-            //订阅消息
-            if (client.isConnected()) {
-                subcribeTopic();
-            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -103,12 +100,19 @@ public class MqttServer implements MqttCallback, CommandServer {
         // 设置会话心跳时间
         options.setKeepAliveInterval(20);
         options.setAutomaticReconnect(true);
+
         return options;
     }
 
     @Override
+    public void connectComplete(boolean reconnect, String serverURI) {
+        logger.info("mqtt connect successfully ,is reconnect:{},uri:{}", reconnect, serverURI);
+        subcribeTopic();
+    }
+
+    @Override
     public void connectionLost(Throwable throwable) {
-        logger.error("mqtt server disconnect ",throwable);
+        logger.error("mqtt server disconnect ", throwable);
     }
 
     @Override
@@ -117,8 +121,7 @@ public class MqttServer implements MqttCallback, CommandServer {
         String content = new String(mqttMessage.getPayload());
         JSONObject jo = JSON.parseObject(content);
 
-        CmdMsg msg = new CmdMsg(topic, jo,
-                EnumQoS.valueOf(mqttMessage.getQos()));
+        CmdMsg msg = new CmdMsg(topic, jo);
         receive(msg);
     }
 
@@ -136,10 +139,10 @@ public class MqttServer implements MqttCallback, CommandServer {
         String topic = msg.getTopic();
         List<CommandHandler> cmdInfo = cmdtree.getValue(topic);
         for (CommandHandler commandHandler : cmdInfo) {
-            try{
+            try {
                 commandHandler.getHandler().execute(topic, msg);
-            }catch (Exception exc){
-                logger.error(exc.getMessage(),exc);
+            } catch (Exception exc) {
+                logger.error(exc.getMessage(), exc);
             }
         }
         if (this.msgConsumer != null) {
@@ -189,4 +192,5 @@ public class MqttServer implements MqttCallback, CommandServer {
     public MqttConfig getConfig() {
         return config;
     }
+
 }

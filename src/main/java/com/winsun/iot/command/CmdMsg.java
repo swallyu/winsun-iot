@@ -18,6 +18,11 @@ public class CmdMsg {
     private String actionType;
     private EnumCmdStatus status;
 
+    public CmdMsg(String topic, JSONObject data) {
+        this.topic = topic;
+        this.data = data;
+    }
+
     public CmdMsg(String topic, JSONObject data, EnumQoS qos) {
         this.topic = topic;
         this.data = data;
@@ -81,5 +86,9 @@ public class CmdMsg {
 
     public EnumCmdStatus getStatus() {
         return status;
+    }
+
+    public void setQos(EnumQoS qos) {
+        this.qos = qos;
     }
 }

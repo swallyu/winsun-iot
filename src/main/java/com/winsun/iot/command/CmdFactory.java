@@ -12,12 +12,15 @@ import java.util.Map;
 
 public class CmdFactory {
 
+    public static String CLOUD_SENDER="cloud";
+
     public static JSONObject buildBizCmd(String sig,EnumQoS qos,String msgtype,JSONObject cmdObj){
         JSONObject ringMsgobj = new JSONObject();
         ringMsgobj.put("sig", sig);
         ringMsgobj.put("qos", qos.getCode());
         ringMsgobj.put("stage", 0);
-        ringMsgobj.put("initiator", "cloud/gw");
+        ringMsgobj.put("initiator", CLOUD_SENDER);
+        ringMsgobj.put("time", System.currentTimeMillis()/1000);
         ringMsgobj.put("result", false);
         JSONObject detail = new JSONObject();
         detail.put("type", msgtype);
@@ -32,7 +35,7 @@ public class CmdFactory {
         ringMsgobj.put("sig", sig);
         ringMsgobj.put("stage", status.getCode());
         ringMsgobj.put("result", result);
-
+        ringMsgobj.put("time", System.currentTimeMillis());
         return ringMsgobj;
     }
 

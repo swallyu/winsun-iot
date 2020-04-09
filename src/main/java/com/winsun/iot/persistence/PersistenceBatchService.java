@@ -18,10 +18,7 @@ import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -38,8 +35,11 @@ public class PersistenceBatchService {
 
     private Map<String,BatchTask> taskMap = new HashMap<>();
 
-    @Inject
     private CommonDao commonDao;
+
+    public PersistenceBatchService(CommonDao commonDao) {
+        this.commonDao = commonDao;
+    }
 
     public void start() {
         executorService = Executors.newScheduledThreadPool(1, new ThreadFactory() {
@@ -56,7 +56,9 @@ public class PersistenceBatchService {
         BatchTask task = taskMap.get(tableName);
         if(task==null){
             task = new BatchTask(tableName,fields);
-            executorService.scheduleAtFixedRate(task, 0, checkPeriod, TimeUnit.SECONDS);
+            ScheduledFuture<?> future =  executorService.scheduleAtFixedRate(task, 0, checkPeriod, TimeUnit.SECONDS);
+            task.setFuture(future);
+            taskMap.put(tableName,task);
         }
     }
 
@@ -73,6 +75,8 @@ public class PersistenceBatchService {
         private LocalDateTime lastCheckTime;
 
         private Queue<String> queue = new ArrayDeque<>(10000);
+        private ScheduledFuture<?> future;
+
         public BatchTask(String tableName, String[] fields) {
             this.tableName = tableName;
             this.fields = fields;
@@ -87,13 +91,13 @@ public class PersistenceBatchService {
                 return;
             }
             running.set(true);
-            logger.info("check data for save {}",this.queue.size());
+//            logger.info("check data for save {}： {}",this.tableName,this.queue.size());
             Duration duration = Duration.between(lastCheckTime,LocalDateTime.now());
 
             if (queue.size() > maxBuffer || duration.toMillis() / 1000 > maxTime) {
                 int execSize = 0;
                 try {
-                    logger.info("save data to database ");
+                    logger.info("save data to database {},",this.tableName);
                     int sqlexcqueuesize = queue.size();
 
                     File tmpFiledir = new File(Config.getMySqlLoadFilePath());
@@ -133,7 +137,7 @@ public class PersistenceBatchService {
                 } catch (Exception exc) {
                     logger.error(exc.getMessage(), exc);
                 }finally {
-                    logger.info("save data to database finish {}",execSize);
+                    logger.info("save data to database finish {} :{}",this.tableName,execSize);
                     lastCheckTime=LocalDateTime.now();
                 }
             }
@@ -142,6 +146,14 @@ public class PersistenceBatchService {
 
         public void addData(String data) {
             this.queue.offer(data);
+        }
+
+        public void setFuture(ScheduledFuture<?> future) {
+            this.future = future;
+        }
+
+        public ScheduledFuture<?> getFuture() {
+            return future;
         }
     }
 

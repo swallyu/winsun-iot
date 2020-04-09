@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.winsun.iot.config.Config;
+import com.winsun.iot.dao.CommonDao;
 import com.winsun.iot.device.DeviceManager;
 import com.winsun.iot.http.HttpIocModule;
 import com.winsun.iot.persistence.PersistenceBatchService;
@@ -50,8 +51,8 @@ public class IotModule extends AbstractModule {
     }
     @Provides
     @Singleton
-    PersistenceBatchService persistenceBatchService() {
-        PersistenceBatchService service = new PersistenceBatchService();
+    PersistenceBatchService persistenceBatchService(CommonDao commonDao) {
+        PersistenceBatchService service = new PersistenceBatchService(commonDao);
         return service;
     }
 }

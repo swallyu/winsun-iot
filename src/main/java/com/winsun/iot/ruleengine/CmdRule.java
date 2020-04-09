@@ -5,6 +5,7 @@ import com.winsun.iot.command.*;
 import com.winsun.iot.device.DeviceConnManager;
 import com.winsun.iot.domain.CmdResult;
 import com.winsun.iot.utils.PathUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,11 @@ public class CmdRule {
             this.cmdMsg = cmdMsg.getCmdMsg();
             cmdStatus = cmdMsg.getCmdMsg().getStatus();
         }
-        this.cmdMsgList.add(cmdMsg);
+
+        boolean respResult = true;
+        if (this.cmdCallback != null) {
+            respResult = this.cmdCallback.executeReceive(cmdMsg);
+        }
 
         int stage = cmdMsg.getCmdMsg().getStatus().getCode();
         if (this.cmdMsg.getQos().getCode() == stage) {
@@ -60,19 +65,26 @@ public class CmdRule {
             this.result = cmdMsg.getCmdMsg().getData().getBoolean("result");
             return new CmdResult<>(0, true, null, null);
         }
-        if (stage <= this.cmdStatus.getCode()) {
+        if (this.cmdMsgList.size() > 1 && stage <= getLastMsg().getCmdMsg().getStatus().getCode()) {
             return new CmdResult<>(-1, false, "重复的stage", null);
         }
         cmdStatus = cmdMsg.getCmdMsg().getStatus();
+        this.cmdMsgList.add(cmdMsg);
 
         int newStage = stage + 1;
         if (newStage > this.cmdMsg.getQos().getCode()) {
             return new CmdResult<>(-1, false, "无效的指令信息", null);
         }
         String topic = this.cmdMsg.getTopic();
+        if (this.cmdCallback != null) {
+            String tmp = this.cmdCallback.getRespTopic(cmdMsg.getCmdMsg());
+            if (StringUtils.isNotEmpty(tmp)) {
+                topic = tmp;
+            }
+        }
         String gatewayId = PathUtil.getPathLast(topic);
         this.result = true;
-        JSONObject resp = CmdFactory.buildBizCmdResp(cmdMsg.getBizId(), EnumCmdStatus.parseOf(newStage), true);
+        JSONObject resp = CmdFactory.buildBizCmdResp(cmdMsg.getBizId(), EnumCmdStatus.parseOf(newStage), respResult);
         CmdMsg msg = new CmdMsg(topic,
                 resp, this.cmdMsg.getQos());
         msg.setBizId(cmdMsg.getBizId());
@@ -102,6 +114,7 @@ public class CmdRule {
         if (iscomplete) {
             return false;
         }
+        this.iscomplete = true;
         logger.info("the biz command is complete {}", this.cmdMsg.getBizId());
         if (cmdCallback != null) {
             cmdCallback.complete(this.cmdMsg.getBizId(), this);
@@ -115,5 +128,9 @@ public class CmdRule {
 
     public CmdRuleInfo getLastMsg() {
         return this.cmdMsgList.size() > 0 ? this.cmdMsgList.get(cmdMsgList.size() - 1) : null;
+    }
+
+    public CmdMsg getCmdMsg() {
+        return cmdMsg;
     }
 }

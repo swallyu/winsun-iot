@@ -214,16 +214,8 @@ public class DeviceManager {
         String dstTopic = topic + "/" + baseId;
 
         String sig = RandomString.getRandomString(16);
-        JSONObject ringMsgobj = new JSONObject();
-        ringMsgobj.put("sig", sig);
-        ringMsgobj.put("qos", qos.getCode());
-        ringMsgobj.put("stage", 0);
-        ringMsgobj.put("initiator", "cloud/gw");
-        ringMsgobj.put("result", false);
-        JSONObject detail = new JSONObject();
-        detail.put("type", msgtype);
-        detail.put("detail", cmdObj);
-        ringMsgobj.put("msg", detail);
+
+        JSONObject ringMsgobj = CmdFactory.buildBizCmd(sig,qos,msgtype,cmdObj);
 
         CmdMsg msg = new CmdMsg(dstTopic, ringMsgobj, qos);
         msg.setBizId(sig);
