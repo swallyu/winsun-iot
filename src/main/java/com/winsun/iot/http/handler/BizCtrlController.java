@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.winsun.iot.biz.service.BizService;
 import com.winsun.iot.command.CmdCallback;
-import com.winsun.iot.command.CmdMsg;
 import com.winsun.iot.command.EnumQoS;
 import com.winsun.iot.device.DeviceManager;
 import com.winsun.iot.domain.CmdResult;
@@ -33,7 +32,7 @@ public class BizCtrlController implements HttpController {
         JSONObject cmdObj = obj.getJSONObject("detail");
 
         CmdResult<String> result = dm.invokeCmd(topic, EnumQoS.ExtractOnce,msgType,baseId,cmdObj,new InnerCmdCallback());
-        bizService.startBiz(result.getData());
+        bizService.startBiz(result.getData(), baseId, obj.toString(), msgType, EnumQoS.AtleastOnce.getCode());
 
         resp.write(result);
     }

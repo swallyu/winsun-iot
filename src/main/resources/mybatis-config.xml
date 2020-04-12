@@ -35,5 +35,6 @@
     <mappers>
         <mapper resource="mapper/CommonDao.xml"/>
         <mapper resource="mapper/SysDevicesMapper.xml"/>
+        <mapper resource="mapper/LogDeviceCtrlMapper.xml"/>
     </mappers>
 </configuration>
