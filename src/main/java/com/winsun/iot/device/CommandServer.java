@@ -9,4 +9,6 @@ public interface CommandServer {
     void receive(CmdMsg cmdMsg);
     void start();
     void setReceiveMsgConsumer(MsgConsumer cmdMsg);
+
+    boolean isconnect();
 }

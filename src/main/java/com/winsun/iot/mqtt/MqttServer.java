@@ -159,6 +159,11 @@ public class MqttServer implements MqttCallbackExtended, CommandServer {
         this.msgConsumer = cmdMsg;
     }
 
+    @Override
+    public boolean isconnect() {
+        return client.isConnected();
+    }
+
     public boolean canSend() {
         return this.client.isConnected();
     }

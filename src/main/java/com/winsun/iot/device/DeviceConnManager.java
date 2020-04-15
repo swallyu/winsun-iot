@@ -88,6 +88,12 @@ public class DeviceConnManager {
 
     }
 
+    public void sendRawCmd(String topic, String msg, int qos) {
+        if(mqttServer!=null&&mqttServer.isconnect()){
+            mqttServer.publish(topic,msg,qos);
+        }
+    }
+
 
     private class CmdSender implements Runnable {
 

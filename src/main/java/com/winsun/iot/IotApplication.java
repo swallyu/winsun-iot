@@ -29,6 +29,8 @@ public class IotApplication {
        try{
            Ioc.getInjector().getInstance(PersistenceService.class).start();
            Ioc.getInjector().getInstance(PersistenceBatchService.class).start();
+
+
            HttpServer.getInstance().start();
 
            DeviceManager mgr = Ioc.getInjector().getInstance(DeviceManager.class);

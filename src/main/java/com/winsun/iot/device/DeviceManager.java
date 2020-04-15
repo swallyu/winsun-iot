@@ -12,10 +12,13 @@ import com.winsun.iot.domain.CmdResult;
 import com.winsun.iot.domain.DeviceInfo;
 import com.winsun.iot.domain.SysDevices;
 import com.winsun.iot.iocmodule.Ioc;
+import com.winsun.iot.persistence.redis.RedisService;
 import com.winsun.iot.ruleengine.EnumCmdStatus;
+import com.winsun.iot.schedule.ScheduleService;
 import com.winsun.iot.utils.DateTimeUtils;
 import com.winsun.iot.utils.HttpClientUtil;
 import com.winsun.iot.utils.RandomString;
+import com.winsun.iot.utils.functions.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,9 +44,21 @@ public class DeviceManager {
     @Inject
     private BizCmdHandler bizCmdHandler;
 
+    @Inject
+    private ScheduleService scheduleService;
+
     private Map<String, DeviceInfo> deviceInfoMap = new ConcurrentHashMap<>();
 
     public void start() {
+        RedisService redisService = Ioc.getInjector().getInstance(RedisService.class);
+        scheduleService.startTask("heart-beat", 10 * 1000, new Function() {
+            @Override
+            public void execute() {
+                logger.info("send heart beat");
+                connManager.sendRawCmd("/E2ES/HeartBeat","1",0);
+            }
+        });
+
         loadDevice();
 
         connManager.addCommand(new CommandHandler(EventHandler.TOPIC, EnumQoS.valueOf(EventHandler.QOS),
@@ -157,7 +172,7 @@ public class DeviceManager {
         }
         boolean saveSuc = deviceInfo.updateStsSensorDataAndPull2DB(stssensordata);
         if (!deviceInfo.isOnline()) {
-            if (this.isDevOnLine(deviceInfo.getGatewayid())) {
+            if (this.isDevOnLine(deviceInfo.getBaseId())) {
                 deviceInfo.setOnline(true);
             }
         }
@@ -181,7 +196,7 @@ public class DeviceManager {
         }
         boolean saveSuc = deviceInfo.updateRealitySensorDataAndPull2DB(stssensordata);
         if (!deviceInfo.isOnline()) {
-            if (this.isDevOnLine(deviceInfo.getGatewayid())) {
+            if (this.isDevOnLine(deviceInfo.getBaseId())) {
                 deviceInfo.setOnline(true);
             }
         }

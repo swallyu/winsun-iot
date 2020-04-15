@@ -48,4 +48,15 @@ public class RedisServiceImpl implements RedisService {
         redisCommands.set(key,value);
         return true;
     }
+
+    @Override
+    public boolean hset(String key, String field, String value) {
+
+        return redisCommands.hset(key,field,value);
+    }
+
+    @Override
+    public String hget(String key, String field) {
+        return redisCommands.hget(key,field);
+    }
 }

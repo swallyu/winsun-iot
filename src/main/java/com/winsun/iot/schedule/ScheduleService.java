@@ -1,5 +1,7 @@
 package com.winsun.iot.schedule;
 
+import com.winsun.iot.utils.functions.Function;
+
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
@@ -27,7 +29,7 @@ public class ScheduleService {
      * @param period millsceond
      * @param consumer
      */
-    public void startTask(String name, int period, Consumer<Object> consumer){
+    public void startTask(String name, int period, Function consumer){
         SchduleTask task = taskMap.computeIfAbsent(name,k->new SchduleTask(name,period));
         task.setConsumer(consumer);
 
