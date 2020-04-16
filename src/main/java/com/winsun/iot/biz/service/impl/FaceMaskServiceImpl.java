@@ -57,7 +57,7 @@ public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleLi
         }
 
         CmdResult<String> result = dm.invokeCmd(topic, EnumQoS.ExtractOnce, cmdType, sellInfo.getBaseId(), cmdObj,
-                new SellInnerCmdCallback(sellInfo));
+                new SellInnerCmdCallback(sellInfo), 0);
 
         bizService.startBiz(result.getData(), sellInfo.getBaseId(), JSON.toJSONString(sellInfo),
                 cmdType,"sell", EnumQoS.ExtractOnce.getCode());
@@ -82,7 +82,7 @@ public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleLi
         cmdObj.put("data", url);
 
         CmdResult<String> result = dm.invokeCmd(topic, EnumQoS.ExtractOnce, cmdType, deviceId, cmdObj,
-                new UpdateQrCodeInnerCmdCallback());
+                new UpdateQrCodeInnerCmdCallback(),10);
         bizService.startBiz(result.getData(), deviceId, cmdObj.toJSONString(),
                 cmdType, "updateQRC", EnumQoS.ExtractOnce.getCode());
 

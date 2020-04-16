@@ -31,7 +31,7 @@ public class BizCtrlController implements HttpController {
         String baseId = obj.getString("baseId");
         JSONObject cmdObj = obj.getJSONObject("detail");
 
-        CmdResult<String> result = dm.invokeCmd(topic, EnumQoS.ExtractOnce,msgType,baseId,cmdObj,new InnerCmdCallback());
+        CmdResult<String> result = dm.invokeCmd(topic, EnumQoS.ExtractOnce,msgType,baseId,cmdObj,new InnerCmdCallback(), 0);
         bizService.startBiz(result.getData(), baseId, obj.toString(), msgType, "control", EnumQoS.AtleastOnce.getCode());
 
         resp.write(result);

@@ -231,7 +231,8 @@ public class DeviceManager {
     }
 
     public CmdResult<String> invokeCmd(String topic, EnumQoS qos,
-                                       String msgtype, String baseId, JSONObject cmdObj, CmdCallback callback) {
+                                       String msgtype, String baseId, JSONObject cmdObj,
+                                       CmdCallback callback, int timeout) {
         String dstTopic = topic + "/" + baseId;
 
         String sig = RandomString.getRandomString(16);
@@ -242,7 +243,7 @@ public class DeviceManager {
         msg.setBizId(sig);
         msg.setGatewayId(baseId);
         msg.setStatus(EnumCmdStatus.Stage_0);
-        connManager.sendCmd(new CmdRuleInfo(msg),callback,10);
+        connManager.sendCmd(new CmdRuleInfo(msg),callback,timeout);
 
         CmdResult<String> result = new CmdResult<>(0, true, "发送控制命令成功", sig);
         return result;
