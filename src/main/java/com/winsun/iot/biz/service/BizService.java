@@ -7,7 +7,7 @@ public interface BizService {
 
     BizInfo getById(String bizId);
 
-    void startBiz(String bizId, String baseId, String cmd, String msgType, int qos);
+    void startBiz(String bizId, String baseId, String cmd, String cmdType, String msgType, int qos);
 
     void complete(String bizId, CmdRule cmdMsg);
 }

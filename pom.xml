@@ -123,11 +123,6 @@
                             <mainClass>${main.class}</mainClass>
                         </manifest>
                     </archive>
-                    <excludes>
-                        <exclude>sysmanager_lib/*</exclude>
-                        <exclude>sysmanager-1.0.jar</exclude>
-                        <exclude>*.db</exclude>
-                    </excludes>
                 </configuration>
             </plugin>
             <plugin>

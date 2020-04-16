@@ -46,17 +46,20 @@ public class FileUtils {
                     && FileUtils.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath().endsWith(".jar")) {
                 InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(file);
 
-                try (BufferedReader r = new BufferedReader(new InputStreamReader(is))) {
+                String path = getProjectPath()+"/"+file;
+                try (BufferedReader r = new BufferedReader(new FileReader(path))) {
                     content = r.lines().collect(Collectors.joining("\n"));
                 }
             } else {
                 String fileUrl = Thread.currentThread().getContextClassLoader().getResource("").getPath();
                 fileUrl = java.net.URLDecoder.decode(fileUrl, "utf-8").substring(1) + file;
                 File f = new File(fileUrl);
+
                 if(!f.exists()&&fileUrl.contains("test-classes")){
                     fileUrl = fileUrl.replaceAll("test-classes","classes");
                     f = new File(fileUrl);
                 }
+
                 try (BufferedReader r = new BufferedReader(new FileReader(fileUrl))) {
                     content = r.lines().collect(Collectors.joining("\n"));
                 }

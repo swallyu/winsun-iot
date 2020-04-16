@@ -19,6 +19,8 @@ public class LogDeviceCtrl {
     */
     private String cmdType;
 
+    private String msgType;
+
     /**
     * 指令签名
     */
@@ -145,5 +147,13 @@ public class LogDeviceCtrl {
 
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getMsgType() {
+        return msgType;
+    }
+
+    public void setMsgType(String msgType) {
+        this.msgType = msgType;
     }
 }

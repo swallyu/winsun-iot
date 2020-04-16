@@ -60,6 +60,14 @@ public class Config {
         return getString("redis.url", "");
     }
 
+    public String getBizServerUrl(){
+        return getString("biz.server.url", "");
+    }
+
+    public String getBizServerReq(String path){
+        return getBizServerUrl() + path;
+    }
+
     private int getInt(String key, String defaultValue) {
         String value = prop.getProperty(key, defaultValue);
         return Integer.valueOf(value);

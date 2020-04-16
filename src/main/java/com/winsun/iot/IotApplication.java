@@ -1,6 +1,7 @@
 package com.winsun.iot;
 
 import ch.qos.logback.classic.util.ContextInitializer;
+import com.winsun.iot.biz.service.FaceMaskService;
 import com.winsun.iot.device.DeviceManager;
 import com.winsun.iot.http.HttpServer;
 import com.winsun.iot.iocmodule.Ioc;
@@ -33,8 +34,12 @@ public class IotApplication {
 
            HttpServer.getInstance().start();
 
+           Ioc.getInjector().getInstance(FaceMaskService.class);
+
            DeviceManager mgr = Ioc.getInjector().getInstance(DeviceManager.class);
            mgr.start();
+
+
 
            Ioc.getInjector().getInstance(PersistenceBatchService.class)
                    .addTask("data_sensor",

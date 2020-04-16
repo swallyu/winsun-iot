@@ -48,11 +48,16 @@ public class ResponseHandler implements CmdHandler {
      */
     @Override
     public void execute(String topic, CmdMsg data) {
-        String gateway = PathUtil.getPath(topic, 4);
-        JSONObject msg = data.getData();
-        String sig = msg.getString("sig");
-        int stage = msg.getInteger("stage");
-        boolean result = msg.getBoolean("result");
+        try {
+            String gateway = PathUtil.getPath(topic, 4);
+            JSONObject msg = data.getData();
+            String sig = msg.getString("sig");
+            int stage = msg.getInteger("stage");
+            boolean result = msg.getBoolean("result");
+        } catch (Exception e) {
+            logger.error(e.getMessage(),e);
+            logger.error(e.getMessage(),data.getData().toJSONString());
+        }
 
     }
 }

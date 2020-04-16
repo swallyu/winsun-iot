@@ -1,9 +1,6 @@
 package com.winsun.iot.device;
 
-import com.alibaba.fastjson.JSONObject;
-import com.google.inject.Inject;
 import com.winsun.iot.command.CmdCallback;
-import com.winsun.iot.command.CmdMsg;
 import com.winsun.iot.command.CmdRuleInfo;
 import com.winsun.iot.command.CommandHandler;
 import com.winsun.iot.command.biz.BizCmdHandler;
@@ -11,7 +8,6 @@ import com.winsun.iot.config.Config;
 import com.winsun.iot.mqtt.MqttConfig;
 import com.winsun.iot.mqtt.MqttServer;
 import com.winsun.iot.ruleengine.CmdRule;
-import com.winsun.iot.utils.MsgConsumer;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +16,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.Consumer;
 
 public class DeviceConnManager {
     private static final Logger logger = LoggerFactory.getLogger(DeviceConnManager.class);
@@ -79,13 +74,13 @@ public class DeviceConnManager {
         service.scheduleAtFixedRate(new CmdSender(), 0, 50, TimeUnit.MILLISECONDS);
     }
 
-    public void sendCmd(CmdRuleInfo cmdMsg, CmdCallback cmdCallback) {
+    public void sendCmd(CmdRuleInfo cmdMsg, CmdCallback cmdCallback, int sendTimeout) {
         CmdQueue queue = gatewayCmdQueue.computeIfAbsent(cmdMsg.getCmdMsg().getGatewayId(),
                 k -> new CmdQueue(cmdTimeInterval, destroySecond));
         queue.offerQueue(cmdMsg);
 
         CmdRule cmdRule = bizCmdHandler.addCmdRule(cmdMsg,cmdCallback);
-
+        cmdRule.setTimeOut(sendTimeout);
     }
 
     public void sendRawCmd(String topic, String msg, int qos) {

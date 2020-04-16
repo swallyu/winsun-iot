@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.winsun.iot.command.CmdHandler;
 import com.winsun.iot.command.CmdMsg;
 import com.winsun.iot.dao.CommonDao;
+import com.winsun.iot.device.DeviceLifeRecycleListener;
 import com.winsun.iot.device.DeviceManager;
 import com.winsun.iot.domain.LogDeviceEvents;
 import com.winsun.iot.utils.functions.Function;
@@ -54,7 +55,9 @@ public class ConnectHandler implements CmdHandler {
         }
         final boolean status = isonline;
         deviceManager.updateDeviceStatus(gateway,isonline);
-
+        if(isonline){
+            deviceManager.invokeOnline(gateway);
+        }
         persistenceService.addAction(new Function() {
             @Override
             public void execute() {

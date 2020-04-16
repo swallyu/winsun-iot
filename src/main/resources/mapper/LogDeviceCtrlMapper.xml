@@ -35,11 +35,11 @@
   </delete>
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.winsun.iot.domain.LogDeviceCtrl" useGeneratedKeys="true">
     <!--@mbg.generated-->
-    insert into log_device_ctrl (base_id, cmd_type, sig, 
+    insert into log_device_ctrl (base_id, cmd_type,msg_type, sig,
       cmd_msg, exec_step, qos, 
       complete, `result`, create_time, 
       update_time)
-    values (#{baseId,jdbcType=VARCHAR}, #{cmdType,jdbcType=VARCHAR}, #{sig,jdbcType=VARCHAR}, 
+    values (#{baseId,jdbcType=VARCHAR}, #{cmdType,jdbcType=VARCHAR},#{msgType,jdbcType=VARCHAR}, #{sig,jdbcType=VARCHAR},
       #{cmdMsg,jdbcType=LONGVARCHAR}, #{execStep,jdbcType=INTEGER}, #{qos,jdbcType=INTEGER}, 
       #{complete,jdbcType=BIT}, #{result,jdbcType=BIT}, #{createTime,jdbcType=TIMESTAMP},
       #{updateTime,jdbcType=TIMESTAMP})

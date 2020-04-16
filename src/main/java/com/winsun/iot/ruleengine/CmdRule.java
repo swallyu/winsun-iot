@@ -5,6 +5,7 @@ import com.winsun.iot.command.*;
 import com.winsun.iot.device.DeviceConnManager;
 import com.winsun.iot.domain.CmdResult;
 import com.winsun.iot.utils.PathUtil;
+import com.winsun.iot.utils.RandomString;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,14 +41,24 @@ public class CmdRule {
 
     private CmdCallback cmdCallback;
 
+    private int retryTime = 3;
+
+    private LocalDateTime lastUpdateTime;
+    private int timeOut;
+
+    private String bizId;
+
     public CmdRule(CmdMsg cmdMsg, CmdCallback callback) {
         cmdStatus = cmdMsg.getStatus();
         this.cmdMsg = cmdMsg;
+        this.cmdMsg.getBizId();
         this.cmdMsgList.add(new CmdRuleInfo(cmdMsg));
         this.cmdCallback = callback;
+        this.lastUpdateTime = LocalDateTime.now();
     }
 
     public CmdResult<CmdRuleInfo> processCmdMsg(CmdRuleInfo cmdMsg) {
+        this.lastUpdateTime = LocalDateTime.now();
         if (this.cmdMsgList.size() == 0) {
             //默认第一条数据
             this.cmdMsg = cmdMsg.getCmdMsg();
@@ -132,5 +143,42 @@ public class CmdRule {
 
     public CmdMsg getCmdMsg() {
         return cmdMsg;
+    }
+
+    public void setTimeOut(int timeOut) {
+        this.timeOut = timeOut;
+    }
+
+    public int getTimeOut() {
+        return timeOut;
+    }
+
+    public LocalDateTime getLastUpdateTime() {
+        return lastUpdateTime;
+    }
+
+    public CmdMsg getNeedResendMsg() {
+
+        if (this.retryTime > 0 && this.cmdMsgList.size() == 1 &&
+                Objects.equals(this.cmdMsg.getData().get("initiator"), CmdFactory.CLOUD_SENDER)) {
+            CmdMsg msg = this.cmdMsg;
+            JSONObject obj = msg.getData();
+            String sig = RandomString.getRandomString(16);
+            obj.put("sig", sig);
+            this.bizId = sig;
+            msg.setBizId(sig);
+            return msg;
+        }
+
+        return null;
+    }
+
+    public String getBizId() {
+        return bizId;
+    }
+
+    public void updateResendTimes(LocalDateTime now) {
+        this.lastUpdateTime = now;
+        this.retryTime--;
     }
 }

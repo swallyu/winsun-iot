@@ -24,11 +24,12 @@ public class BizServiceImpl implements BizService {
     }
 
     @Override
-    public void startBiz(String bizId, String baseId, String cmd, String msgType, int qos) {
+    public void startBiz(String bizId, String baseId, String cmd, String cmdType, String msgType, int qos) {
         LogDeviceCtrl entity = new LogDeviceCtrl();
         entity.setBaseId(baseId);
         entity.setCmdMsg(cmd);
-        entity.setCmdType(msgType);
+        entity.setCmdType(cmdType);
+        entity.setMsgType(msgType);
         entity.setComplete(false);
         entity.setCreateTime(LocalDateTime.now());
         entity.setUpdateTime(LocalDateTime.now());

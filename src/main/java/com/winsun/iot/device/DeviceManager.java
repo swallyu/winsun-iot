@@ -49,6 +49,8 @@ public class DeviceManager {
 
     private Map<String, DeviceInfo> deviceInfoMap = new ConcurrentHashMap<>();
 
+    private Map<String,DeviceLifeRecycleListener> lifeRecycleListenerMap = new HashMap<>();
+
     public void start() {
         RedisService redisService = Ioc.getInjector().getInstance(RedisService.class);
         scheduleService.startTask("heart-beat", 10 * 1000, new Function() {
@@ -103,6 +105,7 @@ public class DeviceManager {
                 return false;
             }
             info.setOnline(status);
+
             return true;
         }
         return false;
@@ -140,6 +143,9 @@ public class DeviceManager {
                         DeviceInfo info = this.deviceInfoMap.get(deviceId);
                         if (info != null) {
                             info.login();
+                            for (DeviceLifeRecycleListener value : lifeRecycleListenerMap.values()) {
+                                value.online(deviceId);
+                            }
                         }
                     }
                 }
@@ -236,14 +242,26 @@ public class DeviceManager {
         msg.setBizId(sig);
         msg.setGatewayId(baseId);
         msg.setStatus(EnumCmdStatus.Stage_0);
-        connManager.sendCmd(new CmdRuleInfo(msg),callback);
+        connManager.sendCmd(new CmdRuleInfo(msg),callback,10);
 
         CmdResult<String> result = new CmdResult<>(0, true, "发送控制命令成功", sig);
         return result;
     }
 
     public boolean invokeCmd(CmdRuleInfo data, CmdCallback callback) {
-        connManager.sendCmd(data,callback);
+        connManager.sendCmd(data,callback, 10);
         return true;
+    }
+
+    public void addLifeRecycleListener(String name, DeviceLifeRecycleListener listener) {
+        this.lifeRecycleListenerMap.put(name, listener);
+    }
+
+    public void invokeOnline(String gateway) {
+        if(this.deviceInfoMap.containsKey(gateway)){
+            for (DeviceLifeRecycleListener value : lifeRecycleListenerMap.values()) {
+                value.online(gateway);
+            }
+        }
     }
 }
