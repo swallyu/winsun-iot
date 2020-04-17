@@ -42,6 +42,17 @@ public class BizServiceImpl implements BizService {
         bizInfoMap.put(bizId,new BizInfo(bizId));
     }
 
+    public void updateBizInfo(String bizId,String cmd,String newBizId){
+        LogDeviceCtrl entity = logDeviceCtrlMapper.selectByBizId(bizId);
+        if(entity!=null){
+            entity.setSig(newBizId);
+            entity.setCmdMsg(cmd);
+            bizInfoMap.put(newBizId,new BizInfo(bizId));
+            bizInfoMap.remove(bizId);
+            this.logDeviceCtrlMapper.updateByPrimaryKey(entity);
+        }
+    }
+
     @Override
     public void complete(String bizId, CmdRule cmdMsg) {
         BizInfo info = bizInfoMap.get(bizId);

@@ -21,6 +21,8 @@ public class LogDeviceCtrl {
 
     private String msgType;
 
+    private int retryTimes;
+
     /**
     * 指令签名
     */
@@ -155,5 +157,13 @@ public class LogDeviceCtrl {
 
     public void setMsgType(String msgType) {
         this.msgType = msgType;
+    }
+
+    public int getRetryTimes() {
+        return retryTimes;
+    }
+
+    public void setRetryTimes(int retryTimes) {
+        this.retryTimes = retryTimes;
     }
 }

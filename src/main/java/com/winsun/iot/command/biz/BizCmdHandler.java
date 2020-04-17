@@ -2,6 +2,7 @@ package com.winsun.iot.command.biz;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
+import com.winsun.iot.biz.service.BizService;
 import com.winsun.iot.command.CmdCallback;
 import com.winsun.iot.command.CmdMsg;
 import com.winsun.iot.command.CmdRuleInfo;
@@ -35,6 +36,9 @@ public class BizCmdHandler {
     private static final Logger logger = LoggerFactory.getLogger(BizCmdHandler.class);
     @Inject
     private DeviceManager dm;
+
+    @Inject
+    private BizService bizService;
 
     public BizCmdHandler() {
         executorService = Executors.newScheduledThreadPool(2, new ThreadFactory() {
@@ -119,11 +123,11 @@ public class BizCmdHandler {
                         cmdRuleInfoMap.remove(bizId);
                         cmdRuleInfoMap.put(value.getBizId(), value);
                         value.updateResendTimes(LocalDateTime.now());
+                        bizService.updateBizInfo(bizId,timeOutmsg.getData().toJSONString(),value.getBizId());
                         dm.invokeCmd(new CmdRuleInfo(timeOutmsg), null);
                     }
                 }
             }
         }
     }
-
 }

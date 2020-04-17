@@ -119,6 +119,7 @@ public class MqttServer implements MqttCallbackExtended, CommandServer {
     public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
 
         String content = new String(mqttMessage.getPayload());
+        logger.debug("receive msg :\n{}\n{}",topic,content);
         JSONObject jo = JSON.parseObject(content);
 
         CmdMsg msg = new CmdMsg(topic, jo);

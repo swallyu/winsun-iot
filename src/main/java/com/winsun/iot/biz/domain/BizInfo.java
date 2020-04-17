@@ -20,6 +20,10 @@ public class BizInfo {
         this.startTime = startTime;
     }
 
+    public void setBizId(String bizId) {
+        this.bizId = bizId;
+    }
+
     public String getBizId() {
         return bizId;
     }

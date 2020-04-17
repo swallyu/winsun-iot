@@ -10,4 +10,6 @@ public interface BizService {
     void startBiz(String bizId, String baseId, String cmd, String cmdType, String msgType, int qos);
 
     void complete(String bizId, CmdRule cmdMsg);
+
+    void updateBizInfo(String bizId,String cmd,String newBizId);
 }
