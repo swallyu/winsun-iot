@@ -26,5 +26,4 @@ public class BizUpdateQrCodeController implements HttpController {
         CmdResult<String> result = faceMaskService.updateQrCode(token,url);
         resp.write(result);
     }
-
 }

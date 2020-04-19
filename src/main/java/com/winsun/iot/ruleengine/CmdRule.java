@@ -47,11 +47,12 @@ public class CmdRule {
     private int timeOut;
 
     private String bizId;
+    private boolean resendUseNewSig;
 
     public CmdRule(CmdMsg cmdMsg, CmdCallback callback) {
         cmdStatus = cmdMsg.getStatus();
         this.cmdMsg = cmdMsg;
-        this.cmdMsg.getBizId();
+        this.bizId = this.cmdMsg.getBizId();
         this.cmdMsgList.add(new CmdRuleInfo(cmdMsg));
         this.cmdCallback = callback;
         this.lastUpdateTime = LocalDateTime.now();
@@ -157,16 +158,20 @@ public class CmdRule {
         return lastUpdateTime;
     }
 
-    public CmdMsg getNeedResendMsg() {
+    public CmdMsg getNeedResendMsg(boolean resendUseNewSig) {
 
         if (this.retryTime > 0 && this.cmdMsgList.size() == 1 &&
                 Objects.equals(this.cmdMsg.getData().get("initiator"), CmdFactory.CLOUD_SENDER)) {
             CmdMsg msg = this.cmdMsg;
             JSONObject obj = msg.getData();
-            String sig = RandomString.getRandomString(16);
-            obj.put("sig", sig);
-            this.bizId = sig;
-            msg.setBizId(sig);
+            if (resendUseNewSig) {
+                String sig = RandomString.getRandomString(16);
+                obj.put("sig", sig);
+                this.bizId = sig;
+                msg.setBizId(sig);
+            }else{
+                msg.setBizId(bizId);
+            }
             return msg;
         }
 
@@ -180,5 +185,26 @@ public class CmdRule {
     public void updateResendTimes(LocalDateTime now) {
         this.lastUpdateTime = now;
         this.retryTime--;
+    }
+
+    public void setResendUseNewSig(boolean resendUseNewSig) {
+        this.resendUseNewSig = resendUseNewSig;
+    }
+
+    public boolean getResendUseNewSig() {
+        return resendUseNewSig;
+    }
+
+    public int getRetryTime() {
+        return retryTime;
+    }
+
+    /**
+     * 超时完成
+     */
+    public void timeoutComplete() {
+        logger.info("timeout complete");
+        this.result = false;
+        this.done();
     }
 }

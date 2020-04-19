@@ -16,7 +16,8 @@ public class BizServiceImpl implements BizService {
     @Inject
     private LogDeviceCtrlMapper logDeviceCtrlMapper;
 
-    private Map<String,BizInfo> bizInfoMap = new HashMap<>();
+    private Map<String, BizInfo> bizInfoMap = new HashMap<>();
+
     @Override
     public BizInfo getById(String bizId) {
 
@@ -39,16 +40,17 @@ public class BizServiceImpl implements BizService {
         entity.setSig(bizId);
         this.logDeviceCtrlMapper.insert(entity);
 
-        bizInfoMap.put(bizId,new BizInfo(bizId));
+        bizInfoMap.put(bizId, new BizInfo(bizId));
     }
 
-    public void updateBizInfo(String bizId,String cmd,String newBizId){
+    public void updateResendBizInfo(String bizId, String cmd, String newBizId) {
         LogDeviceCtrl entity = logDeviceCtrlMapper.selectByBizId(bizId);
-        if(entity!=null){
+        if (entity != null) {
             entity.setSig(newBizId);
             entity.setCmdMsg(cmd);
-            bizInfoMap.put(newBizId,new BizInfo(bizId));
+            entity.setRetryTimes(entity.getRetryTimes() + 1);
             bizInfoMap.remove(bizId);
+            bizInfoMap.put(newBizId, new BizInfo(bizId));
             this.logDeviceCtrlMapper.updateByPrimaryKey(entity);
         }
     }
@@ -56,10 +58,10 @@ public class BizServiceImpl implements BizService {
     @Override
     public void complete(String bizId, CmdRule cmdMsg) {
         BizInfo info = bizInfoMap.get(bizId);
-        if(info==null){
+        if (info == null) {
             return;
         }
-        this.logDeviceCtrlMapper.updateStatus(bizId,true,cmdMsg.isResult(),LocalDateTime.now());
-        info.setFinish(true,cmdMsg.isResult());
+        this.logDeviceCtrlMapper.updateStatus(bizId, true, cmdMsg.isResult(), LocalDateTime.now());
+        info.setFinish(true, cmdMsg.isResult());
     }
 }

@@ -11,5 +11,5 @@ public interface BizService {
 
     void complete(String bizId, CmdRule cmdMsg);
 
-    void updateBizInfo(String bizId,String cmd,String newBizId);
+    void updateResendBizInfo(String bizId, String cmd, String newBizId);
 }

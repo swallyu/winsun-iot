@@ -118,13 +118,27 @@ public class BizCmdHandler {
                         && d.toMillis() / 1000 > value.getTimeOut()
                         && !value.isComplete()) {
 
-                    CmdMsg timeOutmsg = value.getNeedResendMsg();
-                    if (timeOutmsg != null) {
-                        cmdRuleInfoMap.remove(bizId);
-                        cmdRuleInfoMap.put(value.getBizId(), value);
+                    int resendTimes = value.getRetryTime();
+                    logger.info("resend times:{},{}",bizId,value.getRetryTime());
+                    if(resendTimes==1){
                         value.updateResendTimes(LocalDateTime.now());
-                        bizService.updateBizInfo(bizId,timeOutmsg.getData().toJSONString(),value.getBizId());
-                        dm.invokeCmd(new CmdRuleInfo(timeOutmsg), null);
+                        value.timeoutComplete();
+                        cmdRuleInfoMap.remove(bizId);
+                        continue;
+                    }
+                    CmdMsg timeOutmsg = value.getNeedResendMsg(value.getResendUseNewSig());
+
+                    if (timeOutmsg != null) {
+                        try {
+                            cmdRuleInfoMap.remove(bizId);
+                            cmdRuleInfoMap.put(value.getBizId(), value);
+                            value.updateResendTimes(LocalDateTime.now());
+                            bizService.updateResendBizInfo(bizId,timeOutmsg.getData().toJSONString(),value.getBizId());
+                            dm.invokeCmd(new CmdRuleInfo(timeOutmsg), null,
+                                    value.getTimeOut(),value.getResendUseNewSig());
+                        } catch (Exception e) {
+                            logger.error(e.getMessage(),e);
+                        }
                     }
                 }
             }

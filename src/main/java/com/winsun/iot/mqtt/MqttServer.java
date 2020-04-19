@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class MqttServer implements MqttCallbackExtended, CommandServer {
@@ -119,7 +120,7 @@ public class MqttServer implements MqttCallbackExtended, CommandServer {
     public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
 
         String content = new String(mqttMessage.getPayload());
-        logger.debug("receive msg :\n{}\n{}",topic,content);
+        logger.info("receive msg :\n{}\n{}",topic,content);
         JSONObject jo = JSON.parseObject(content);
 
         CmdMsg msg = new CmdMsg(topic, jo);
@@ -183,6 +184,10 @@ public class MqttServer implements MqttCallbackExtended, CommandServer {
         if (mqttTopic != null) {
             MqttToken token = null;
             try {
+                if (!Objects.equals(topic, "/E2ES/HeartBeat")) {
+                    logger.info("publish msg \n{} \n{}",topic,msg);
+                }
+
                 token = mqttTopic.publish(mqttMessage);
                 token.waitForCompletion();
                 return token.isComplete();

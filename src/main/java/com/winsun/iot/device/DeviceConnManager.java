@@ -74,13 +74,14 @@ public class DeviceConnManager {
         service.scheduleAtFixedRate(new CmdSender(), 0, 50, TimeUnit.MILLISECONDS);
     }
 
-    public void sendCmd(CmdRuleInfo cmdMsg, CmdCallback cmdCallback, int sendTimeout) {
+    public void sendCmd(CmdRuleInfo cmdMsg, CmdCallback cmdCallback, int sendTimeout, boolean resendUseNewSig) {
         CmdQueue queue = gatewayCmdQueue.computeIfAbsent(cmdMsg.getCmdMsg().getGatewayId(),
                 k -> new CmdQueue(cmdTimeInterval, destroySecond));
         queue.offerQueue(cmdMsg);
 
         CmdRule cmdRule = bizCmdHandler.addCmdRule(cmdMsg,cmdCallback);
         cmdRule.setTimeOut(sendTimeout);
+        cmdRule.setResendUseNewSig(resendUseNewSig);
     }
 
     public void sendRawCmd(String topic, String msg, int qos) {

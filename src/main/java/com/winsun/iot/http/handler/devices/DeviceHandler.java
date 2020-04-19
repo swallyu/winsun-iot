@@ -1,4 +1,4 @@
-package com.winsun.iot.http.handler;
+package com.winsun.iot.http.handler.devices;
 
 import com.winsun.iot.http.common.*;
 

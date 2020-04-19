@@ -57,7 +57,7 @@ public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleLi
         }
 
         CmdResult<String> result = dm.invokeCmd(topic, EnumQoS.ExtractOnce, cmdType, sellInfo.getBaseId(), cmdObj,
-                new SellInnerCmdCallback(sellInfo), 0);
+                new SellInnerCmdCallback(sellInfo), 10, false);
 
         bizService.startBiz(result.getData(), sellInfo.getBaseId(), JSON.toJSONString(sellInfo),
                 cmdType,"sell", EnumQoS.ExtractOnce.getCode());
@@ -82,7 +82,7 @@ public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleLi
         cmdObj.put("data", url);
 
         CmdResult<String> result = dm.invokeCmd(topic, EnumQoS.ExtractOnce, cmdType, deviceId, cmdObj,
-                new UpdateQrCodeInnerCmdCallback(),10);
+                new UpdateQrCodeInnerCmdCallback(),15,true);
         bizService.startBiz(result.getData(), deviceId, cmdObj.toJSONString(),
                 cmdType, "updateQRC", EnumQoS.ExtractOnce.getCode());
 
@@ -120,7 +120,12 @@ public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleLi
 
             updateQrCode(sellInfo.getQrCodeToken(), sellInfo.getQrCodeUrl());
 
-            logger.info("update qrcode sell success {}", JSON.toJSONString(cmdMsg.getCmdMsg(), true));
+            if(cmdMsg.isResult()){
+                logger.info("sell success {}", JSON.toJSONString(cmdMsg.getCmdMsg(), true));
+            }else{
+                logger.info("sell fail {}", JSON.toJSONString(cmdMsg.getCmdMsg(), true));
+
+            }
         }
 
         private void reportStatus(boolean result) {
@@ -140,8 +145,14 @@ public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleLi
         @Override
         public void complete(String bizId, CmdRule cmdMsg) {
             bizService.complete(bizId, cmdMsg);
-            logger.info("update qrcode success {}",
-                    JSON.toJSONString(cmdMsg.getCmdMsg(), true));
+            if(cmdMsg.isResult()){
+                logger.info("update qrcode success {}",
+                        JSON.toJSONString(cmdMsg.getCmdMsg(), true));
+            }else{
+                logger.info("update qrcode fail {}",
+                        JSON.toJSONString(cmdMsg.getCmdMsg(), true));
+            }
+
         }
     }
 }
