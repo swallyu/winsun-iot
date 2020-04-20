@@ -176,6 +176,8 @@ public class MqttServer implements MqttCallbackExtended, CommandServer {
     }
 
     public boolean publish(String topic, String msg, int qos) throws SendException {
+        //测试qos
+        qos = 1;
         MqttMessage mqttMessage = new MqttMessage();
         mqttMessage.setPayload(msg.getBytes());
         mqttMessage.setQos(qos);
@@ -185,7 +187,7 @@ public class MqttServer implements MqttCallbackExtended, CommandServer {
             MqttToken token = null;
             try {
                 if (!Objects.equals(topic, "/E2ES/HeartBeat")) {
-                    logger.info("publish msg \n{} \n{}",topic,msg);
+                    logger.info("publish msg \n{} qos {} \n{}",topic,qos,msg);
                 }
 
                 token = mqttTopic.publish(mqttMessage);

@@ -56,6 +56,12 @@ public class BizServiceImpl implements BizService {
     }
 
     @Override
+    public LogDeviceCtrl getLogInfo(String bizId) {
+        LogDeviceCtrl entity = logDeviceCtrlMapper.selectByBizId(bizId);
+        return entity;
+    }
+
+    @Override
     public void complete(String bizId, CmdRule cmdMsg) {
         BizInfo info = bizInfoMap.get(bizId);
         if (info == null) {
@@ -63,5 +69,6 @@ public class BizServiceImpl implements BizService {
         }
         this.logDeviceCtrlMapper.updateStatus(bizId, true, cmdMsg.isResult(), LocalDateTime.now());
         info.setFinish(true, cmdMsg.isResult());
+        bizInfoMap.remove(bizId);
     }
 }

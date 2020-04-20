@@ -49,7 +49,7 @@ public class DeviceManager {
 
     private Map<String, DeviceInfo> deviceInfoMap = new ConcurrentHashMap<>();
 
-    private Map<String,DeviceLifeRecycleListener> lifeRecycleListenerMap = new HashMap<>();
+    private Map<String, DeviceLifeRecycleListener> lifeRecycleListenerMap = new HashMap<>();
 
     public void start() {
         RedisService redisService = Ioc.getInjector().getInstance(RedisService.class);
@@ -57,7 +57,7 @@ public class DeviceManager {
             @Override
             public void execute() {
                 logger.info("send heart beat");
-                connManager.sendRawCmd("/E2ES/HeartBeat","1",0);
+                connManager.sendRawCmd("/E2ES/HeartBeat", "1", 0);
             }
         });
 
@@ -237,25 +237,26 @@ public class DeviceManager {
 
         String sig = RandomString.getRandomString(16);
 
-        JSONObject ringMsgobj = CmdFactory.buildBizCmd(sig,qos,msgtype,cmdObj);
+        JSONObject ringMsgobj = CmdFactory.buildBizCmd(sig, qos, msgtype, cmdObj);
 
         CmdMsg msg = new CmdMsg(dstTopic, ringMsgobj, qos);
         msg.setBizId(sig);
         msg.setGatewayId(baseId);
         msg.setStatus(EnumCmdStatus.Stage_0);
-        connManager.sendCmd(new CmdRuleInfo(msg),callback,timeout,resendUseNewSig);
+
+        connManager.sendCmd(new CmdRuleInfo(msg), callback, timeout, resendUseNewSig);
 
         CmdResult<String> result = new CmdResult<>(0, true, "发送控制命令成功", sig);
         return result;
     }
 
     public boolean invokeCmd(CmdRuleInfo data, CmdCallback callback) {
-        connManager.sendCmd(data,callback, 10, false);
+        connManager.sendCmd(data, callback, 10, false);
         return true;
     }
 
-    public boolean invokeCmd(CmdRuleInfo data, CmdCallback callback,int timeout, boolean resendUseNewSig) {
-        connManager.sendCmd(data,callback, timeout, resendUseNewSig);
+    public boolean invokeCmd(CmdRuleInfo data, CmdCallback callback, int timeout, boolean resendUseNewSig) {
+        connManager.sendCmd(data, callback, timeout, resendUseNewSig);
         return true;
     }
 
@@ -264,7 +265,7 @@ public class DeviceManager {
     }
 
     public void invokeOnline(String gateway) {
-        if(this.deviceInfoMap.containsKey(gateway)){
+        if (this.deviceInfoMap.containsKey(gateway)) {
             for (DeviceLifeRecycleListener value : lifeRecycleListenerMap.values()) {
                 value.online(gateway);
             }
@@ -273,5 +274,10 @@ public class DeviceManager {
 
     public void reload() {
         loadDevice();
+    }
+
+    public boolean sendRawCmd(String data, int qos, String topic) {
+        this.connManager.sendRawCmd(topic, data, qos);
+        return true;
     }
 }

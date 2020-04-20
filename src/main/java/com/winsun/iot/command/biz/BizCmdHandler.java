@@ -3,12 +3,14 @@ package com.winsun.iot.command.biz;
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.winsun.iot.biz.service.BizService;
+import com.winsun.iot.biz.service.FaceMaskService;
 import com.winsun.iot.command.CmdCallback;
 import com.winsun.iot.command.CmdMsg;
 import com.winsun.iot.command.CmdRuleInfo;
 import com.winsun.iot.command.EnumQoS;
 import com.winsun.iot.device.DeviceManager;
 import com.winsun.iot.domain.CmdResult;
+import com.winsun.iot.domain.LogDeviceCtrl;
 import com.winsun.iot.ruleengine.CmdRule;
 import com.winsun.iot.ruleengine.EnumCmdStatus;
 import com.winsun.iot.utils.MsgConsumer;
@@ -17,10 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -39,6 +38,9 @@ public class BizCmdHandler {
 
     @Inject
     private BizService bizService;
+
+    @Inject
+    private FaceMaskService maskService;
 
     public BizCmdHandler() {
         executorService = Executors.newScheduledThreadPool(2, new ThreadFactory() {
@@ -68,10 +70,12 @@ public class BizCmdHandler {
                 return;
             }
             CmdRule cmdRule = cmdRuleInfoMap.get(bizId);
+            boolean needResp = true;
             if (cmdRule != null) {
                 CmdResult<CmdRuleInfo> ret = cmdRule.processCmdMsg(new CmdRuleInfo(cmdMsg));
                 if (ret.isResult()) {
                     if (ret.getData() != null) {
+                        needResp=false;
                         boolean send = dm.invokeCmd(ret.getData(), null);
                         if (send && cmdRule.isComplete()) {
                             cmdRule.done();
@@ -82,6 +86,22 @@ public class BizCmdHandler {
                         cmdRuleInfoMap.remove(bizId);
                     }
                 }
+            }
+            if(needResp){
+                JSONObject data = cmdMsg.getData();
+                if (data.containsKey("stage")) {
+                    int stage = data.getIntValue("stage");
+                    data.put("stage", stage + 1);
+                }
+                String topic = cmdMsg.getTopic().replaceAll("Response","Control");
+                boolean send = dm.sendRawCmd(data.toJSONString(),1,topic);
+                LogDeviceCtrl ctrl = bizService.getLogInfo(bizId);
+                if(Objects.equals(ctrl.getMsgType(),"sell")){
+                    //设备上执行指令重试，重复resp，实际上之前已经处理，则需要使用最新的二维码更新。
+                    logger.info("device rectrl {}",bizId);
+                    maskService.resendQrCode(ctrl.getBaseId());
+                }
+
             }
         }
 
@@ -119,8 +139,8 @@ public class BizCmdHandler {
                         && !value.isComplete()) {
 
                     int resendTimes = value.getRetryTime();
-                    logger.info("resend times:{},{}",bizId,value.getRetryTime());
-                    if(resendTimes==1){
+                    logger.info("resend times:{},{}", bizId, value.getRetryTime());
+                    if (resendTimes == 1) {
                         value.updateResendTimes(LocalDateTime.now());
                         value.timeoutComplete();
                         cmdRuleInfoMap.remove(bizId);
@@ -130,14 +150,16 @@ public class BizCmdHandler {
 
                     if (timeOutmsg != null) {
                         try {
+                            timeOutmsg.getData().put("time",System.currentTimeMillis()/1000);
+
                             cmdRuleInfoMap.remove(bizId);
                             cmdRuleInfoMap.put(value.getBizId(), value);
                             value.updateResendTimes(LocalDateTime.now());
-                            bizService.updateResendBizInfo(bizId,timeOutmsg.getData().toJSONString(),value.getBizId());
+                            bizService.updateResendBizInfo(bizId, timeOutmsg.getData().toJSONString(), value.getBizId());
                             dm.invokeCmd(new CmdRuleInfo(timeOutmsg), null,
-                                    value.getTimeOut(),value.getResendUseNewSig());
+                                    value.getTimeOut(), value.getResendUseNewSig());
                         } catch (Exception e) {
-                            logger.error(e.getMessage(),e);
+                            logger.error(e.getMessage(), e);
                         }
                     }
                 }

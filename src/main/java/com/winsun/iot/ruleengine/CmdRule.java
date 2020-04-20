@@ -41,7 +41,7 @@ public class CmdRule {
 
     private CmdCallback cmdCallback;
 
-    private int retryTime = 3;
+    private int retryTime = 6;
 
     private LocalDateTime lastUpdateTime;
     private int timeOut;

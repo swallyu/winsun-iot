@@ -15,6 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 网关上下线
@@ -28,12 +32,24 @@ public class ConnectHandler implements CmdHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ConnectHandler.class);
 
+    private ScheduledExecutorService scheduledExecutorService;
     @Inject
     private PersistenceService persistenceService;
     @Inject
     private CommonDao dao;
     @Inject
     private DeviceManager deviceManager;
+
+    public ConnectHandler() {
+        this.scheduledExecutorService = Executors.newScheduledThreadPool(2, new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r);
+                t.setName("connect-handler-thread");
+                return t;
+            }
+        });
+    }
 
     /**
      * 事件格式
@@ -56,7 +72,13 @@ public class ConnectHandler implements CmdHandler {
         final boolean status = isonline;
         deviceManager.updateDeviceStatus(gateway,isonline);
         if(isonline){
-            deviceManager.invokeOnline(gateway);
+            //如果设备上线，需要推迟一段时间更新二维码。
+            this.scheduledExecutorService.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    deviceManager.invokeOnline(gateway);
+                }
+            },5, TimeUnit.SECONDS);
         }
         persistenceService.addAction(new Function() {
             @Override
