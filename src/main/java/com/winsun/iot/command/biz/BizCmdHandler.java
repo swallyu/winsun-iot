@@ -88,6 +88,7 @@ public class BizCmdHandler {
                 }
             }
             if(needResp){
+                //在业务完成后，仍然收到设备回复的数据，则直接发送 stage+1的ctrl消息。后续处理调用实际业务处理
                 JSONObject data = cmdMsg.getData();
                 if (data.containsKey("stage")) {
                     int stage = data.getIntValue("stage");
@@ -95,12 +96,8 @@ public class BizCmdHandler {
                 }
                 String topic = cmdMsg.getTopic().replaceAll("Response","Control");
                 boolean send = dm.sendRawCmd(data.toJSONString(),1,topic);
-                LogDeviceCtrl ctrl = bizService.getLogInfo(bizId);
-                if(Objects.equals(ctrl.getMsgType(),"sell")){
-                    //设备上执行指令重试，重复resp，实际上之前已经处理，则需要使用最新的二维码更新。
-                    logger.info("device rectrl {}",bizId);
-                    maskService.resendQrCode(ctrl.getBaseId());
-                }
+
+                bizService.precessMissTask(bizId,topic,data);
 
             }
         }

@@ -131,6 +131,11 @@ public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleLi
     }
 
     @Override
+    public void processMissTask(String baseId) {
+        resendQrCode(baseId);
+    }
+
+    @Override
     public void online(String deviceId) {
         String url = config.getBizServerReq("/online");
         JSONObject obj = new JSONObject();

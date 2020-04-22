@@ -9,4 +9,6 @@ public interface FaceMaskService {
     CmdResult<String> updateQrCode(String token, String url);
 
     void resendQrCode(String baseId);
+
+    void processMissTask(String baseId);
 }

@@ -1,5 +1,6 @@
 package com.winsun.iot.biz.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.winsun.iot.biz.domain.BizInfo;
 import com.winsun.iot.domain.LogDeviceCtrl;
 import com.winsun.iot.ruleengine.CmdRule;
@@ -15,4 +16,6 @@ public interface BizService {
     void complete(String bizId, CmdRule cmdMsg);
 
     void updateResendBizInfo(String bizId, String cmd, String newBizId);
+
+    void precessMissTask(String bizId, String topic, JSONObject data);
 }
