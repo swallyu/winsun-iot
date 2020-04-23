@@ -1,7 +1,7 @@
 package com.winsun.iot;
 
 import ch.qos.logback.classic.util.ContextInitializer;
-import com.winsun.iot.biz.service.FaceMaskService;
+import com.winsun.facemask.service.FaceMaskService;
 import com.winsun.iot.device.DeviceManager;
 import com.winsun.iot.http.HttpServer;
 import com.winsun.iot.iocmodule.Ioc;

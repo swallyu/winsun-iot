@@ -1,5 +1,6 @@
 package com.winsun.iot.domain;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 public class SysDevices {
@@ -22,11 +23,6 @@ public class SysDevices {
      *
      */
     private String mobile;
-
-    /**
-     *
-     */
-    private String nodeType;
 
     /**
      *
@@ -66,12 +62,12 @@ public class SysDevices {
     /**
      *
      */
-    private Date createTime;
+    private LocalDateTime createTime;
 
     /**
      *
      */
-    private Date modifiedTime;
+    private LocalDateTime modifiedTime;
 
     /**
      * 扩展数据
@@ -108,14 +104,6 @@ public class SysDevices {
 
     public void setMobile(String mobile) {
         this.mobile = mobile;
-    }
-
-    public String getNodeType() {
-        return nodeType;
-    }
-
-    public void setNodeType(String nodeType) {
-        this.nodeType = nodeType;
     }
 
     public String getDeviceType() {
@@ -174,19 +162,19 @@ public class SysDevices {
         this.luatVersion = luatVersion;
     }
 
-    public Date getCreateTime() {
+    public LocalDateTime getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(Date createTime) {
+    public void setCreateTime(LocalDateTime createTime) {
         this.createTime = createTime;
     }
 
-    public Date getModifiedTime() {
+    public LocalDateTime getModifiedTime() {
         return modifiedTime;
     }
 
-    public void setModifiedTime(Date modifiedTime) {
+    public void setModifiedTime(LocalDateTime modifiedTime) {
         this.modifiedTime = modifiedTime;
     }
 

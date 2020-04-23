@@ -8,4 +8,6 @@ public interface RedisService {
     boolean hset(String key, String field, String value);
 
     String hget(String key, String field);
+
+    boolean hdel(String key, String... field);
 }

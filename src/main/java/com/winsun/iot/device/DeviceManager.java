@@ -1,12 +1,15 @@
 package com.winsun.iot.device;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.winsun.iot.command.*;
 import com.winsun.iot.command.biz.BizCmdHandler;
 import com.winsun.iot.config.Config;
+import com.winsun.iot.constcode.MsgCode;
 import com.winsun.iot.dao.CommonDao;
+import com.winsun.iot.dao.SysDevicesMapper;
 import com.winsun.iot.device.handler.*;
 import com.winsun.iot.domain.CmdResult;
 import com.winsun.iot.domain.DeviceInfo;
@@ -15,6 +18,7 @@ import com.winsun.iot.iocmodule.Ioc;
 import com.winsun.iot.persistence.redis.RedisService;
 import com.winsun.iot.ruleengine.EnumCmdStatus;
 import com.winsun.iot.schedule.ScheduleService;
+import com.winsun.iot.utils.BizResult;
 import com.winsun.iot.utils.DateTimeUtils;
 import com.winsun.iot.utils.HttpClientUtil;
 import com.winsun.iot.utils.RandomString;
@@ -23,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +36,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DeviceManager {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceManager.class);
+
+    private static final String REDIS_DEVICE_CACHE_KEY="deviceInfo";
 
     @Inject
     private DeviceConnManager connManager;
@@ -46,6 +53,12 @@ public class DeviceManager {
 
     @Inject
     private ScheduleService scheduleService;
+
+    @Inject
+    private SysDevicesMapper devicesMapper;
+
+    @Inject
+    private RedisService redisService;
 
     private Map<String, DeviceInfo> deviceInfoMap = new ConcurrentHashMap<>();
 
@@ -94,8 +107,17 @@ public class DeviceManager {
         for (SysDevices device : devices) {
             DeviceInfo info = new DeviceInfo(device);
             deviceInfoMap.put(info.getBaseId(), info);
+            this.redisService.hset(REDIS_DEVICE_CACHE_KEY,device.getBaseId(), JSON.toJSONString(device));
         }
         logger.info("load device size {}", devices.size());
+    }
+
+    private void saveToRedis(SysDevices devices){
+        redisService.hset(REDIS_DEVICE_CACHE_KEY,devices.getBaseId(),JSON.toJSONString(devices));
+    }
+
+    private void removeFromRedis(String baseId){
+        redisService.hdel(REDIS_DEVICE_CACHE_KEY,baseId);
     }
 
     public boolean updateDeviceStatus(String baseid, Boolean status) {
@@ -128,6 +150,7 @@ public class DeviceManager {
                 String res = HttpClientUtil.doGet(apiUrl, mapparameters, username, password);
                 JSONObject jo = JSONObject.parseObject(res);
                 if (jo == null) {
+                    currentPage--;
                     continue;
                 }
                 JSONArray items = jo.getJSONArray("items");
@@ -279,5 +302,60 @@ public class DeviceManager {
     public boolean sendRawCmd(String data, int qos, String topic) {
         this.connManager.sendRawCmd(topic, data, qos);
         return true;
+    }
+
+    public Collection<DeviceInfo> getDeviceObjList() {
+        return this.deviceInfoMap.values();
+    }
+
+    public BizResult<Boolean> deleteDevice(String deviceId) {
+        int ret = this.devicesMapper.deleteDevices(deviceId);
+        if (ret > 0) {
+            this.deviceInfoMap.remove(deviceId);
+            removeFromRedis(deviceId);
+        }
+        return BizResult.Success(true);
+    }
+
+    public BizResult<Boolean> createDevice(DeviceInfo deviceInfo) {
+        DeviceInfo info = this.deviceInfoMap.get(deviceInfo.getBaseId());
+        if (info != null) {
+
+            return new BizResult<Boolean>(MsgCode.DEVICE_EXITS,
+                    "增加设备 " + deviceInfo.getBaseId() + " 失败，设备已存在", false);
+        } else {
+            SysDevices device = deviceInfo.getDevice();
+            device.setCreateTime(LocalDateTime.now());
+            device.setModifiedTime(LocalDateTime.now());
+
+            int ret = this.devicesMapper.insert(deviceInfo.getDevice());
+            if (ret > 0) {
+                this.deviceInfoMap.put(device.getBaseId(), new DeviceInfo(device));
+                saveToRedis(device);
+                return BizResult.Success("新增设备 " + deviceInfo.getBaseId() + " 成功", true);
+            }
+            return BizResult.Success("新增设备 " + deviceInfo.getBaseId() + " 失败", false);
+        }
+    }
+
+    public BizResult<Boolean> updateDevice(DeviceInfo deviceInfo) {
+        DeviceInfo info = this.deviceInfoMap.get(deviceInfo.getBaseId());
+        if (info != null) {
+            SysDevices device = deviceInfo.getDevice();
+            device.setModifiedTime(LocalDateTime.now());
+
+            int ret = this.devicesMapper.updateByBaseIdSelective(deviceInfo.getDevice());
+            if (ret > 0) {
+                SysDevices devices = this.devicesMapper.selectByBaseId(deviceInfo.getBaseId());
+                info.setDevice(devices);
+                saveToRedis(devices);
+                return BizResult.Success("更新设备 " + deviceInfo.getBaseId() + " 成功", true);
+            }
+            return BizResult.Success("更新设备 " + deviceInfo.getBaseId() + " 失败", false);
+
+        } else {
+            return new BizResult<Boolean>(MsgCode.DEVICE_NOT_EXITS,
+                    "更新设备 " + deviceInfo.getBaseId() + " 失败，设备不存在", false);
+        }
     }
 }

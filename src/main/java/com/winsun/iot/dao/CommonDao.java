@@ -14,4 +14,5 @@ public interface CommonDao {
     List<SysDevices> listDevices();
 
     int executeRawSql(@Param("sql") String sql);
+
 }

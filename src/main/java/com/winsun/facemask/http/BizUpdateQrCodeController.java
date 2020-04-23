@@ -1,8 +1,8 @@
-package com.winsun.iot.http.handler.facemask;
+package com.winsun.facemask.http;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
-import com.winsun.iot.biz.service.FaceMaskService;
+import com.winsun.facemask.service.FaceMaskService;
 import com.winsun.iot.domain.CmdResult;
 import com.winsun.iot.http.common.*;
 

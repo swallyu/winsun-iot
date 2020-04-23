@@ -3,10 +3,11 @@ package com.winsun.iot.biz.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.winsun.iot.biz.domain.BizInfo;
 import com.winsun.iot.biz.service.BizService;
+import com.winsun.iot.biz.service.ProcessService;
 import com.winsun.iot.dao.LogDeviceCtrlMapper;
-import com.winsun.iot.device.DeviceLifeRecycleListener;
 import com.winsun.iot.device.DeviceManager;
 import com.winsun.iot.domain.LogDeviceCtrl;
+import com.winsun.iot.persistence.redis.RedisService;
 import com.winsun.iot.ruleengine.CmdRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,11 @@ public class BizServiceImpl implements BizService {
 
     @Inject
     private DeviceManager deviceManager;
+
+    @Inject
+    private RedisService redisService;
+
+    private Map<String, ProcessService> processServiceMap = new HashMap<>();
 
     @Override
     public BizInfo getById(String bizId) {
@@ -65,12 +71,15 @@ public class BizServiceImpl implements BizService {
     }
 
     @Override
-    public void precessMissTask(String bizId, String topic, JSONObject data) {
+    public void processMissTask(String deviceId, String bizId, String topic, JSONObject data) {
         LogDeviceCtrl ctrl = getLogInfo(bizId);
         if(Objects.equals(ctrl.getMsgType(),"sell")){
             //设备上执行指令重试，重复resp，实际上之前已经处理，则需要使用最新的二维码更新。
             logger.info("device rectrl {}",bizId);
 //            deviceManager.
+            for (ProcessService value : processServiceMap.values()) {
+                value.processMissTask(deviceId, bizId, topic, data);
+            }
         }
     }
 
@@ -89,5 +98,10 @@ public class BizServiceImpl implements BizService {
         this.logDeviceCtrlMapper.updateStatus(bizId, true, cmdMsg.isResult(), LocalDateTime.now());
         info.setFinish(true, cmdMsg.isResult());
         bizInfoMap.remove(bizId);
+    }
+
+    @Override
+    public void registerHandler(String name, ProcessService service){
+        this.processServiceMap.put(name,service);
     }
 }

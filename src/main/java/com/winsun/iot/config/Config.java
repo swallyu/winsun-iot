@@ -64,6 +64,11 @@ public class Config {
         return getString("biz.server.url", "");
     }
 
+
+    public String getHttpHandlerPkg() {
+        return getString("http.handler.pkg", "");
+    }
+
     public String getBizServerReq(String path){
         return getBizServerUrl() + path;
     }
@@ -77,4 +82,5 @@ public class Config {
         String value = prop.getProperty(key, defaultValue);
         return value;
     }
+
 }

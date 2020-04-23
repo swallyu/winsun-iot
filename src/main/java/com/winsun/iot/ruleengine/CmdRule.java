@@ -70,11 +70,11 @@ public class CmdRule {
         if (this.cmdCallback != null) {
             respResult = this.cmdCallback.executeReceive(cmdMsg);
         }
+        this.result = cmdMsg.getCmdMsg().getData().getBoolean("result");
 
         int stage = cmdMsg.getCmdMsg().getStatus().getCode();
         if (this.cmdMsg.getQos().getCode() == stage) {
             cmdStatus = EnumCmdStatus.parseOf(stage);
-            this.result = cmdMsg.getCmdMsg().getData().getBoolean("result");
             return new CmdResult<>(0, true, null, null);
         }
         if (this.cmdMsgList.size() > 1 && stage <= getLastMsg().getCmdMsg().getStatus().getCode()) {
@@ -95,7 +95,7 @@ public class CmdRule {
             }
         }
         String gatewayId = PathUtil.getPathLast(topic);
-        this.result = true;
+
         JSONObject resp = CmdFactory.buildBizCmdResp(cmdMsg.getBizId(), EnumCmdStatus.parseOf(newStage), respResult);
         CmdMsg msg = new CmdMsg(topic,
                 resp, this.cmdMsg.getQos());

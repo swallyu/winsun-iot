@@ -1,11 +1,11 @@
-package com.winsun.iot.biz.service.impl;
+package com.winsun.facemask.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.winsun.iot.biz.domain.BizInfo;
+import com.winsun.facemask.service.FaceMaskService;
 import com.winsun.iot.biz.domain.SellInfo;
 import com.winsun.iot.biz.service.BizService;
-import com.winsun.iot.biz.service.FaceMaskService;
+import com.winsun.iot.biz.service.ProcessService;
 import com.winsun.iot.command.CmdCallback;
 import com.winsun.iot.command.EnumQoS;
 import com.winsun.iot.config.Config;
@@ -28,7 +28,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleListener {
+public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleListener, ProcessService {
 
     private static final Logger logger = LoggerFactory.getLogger(FaceMaskServiceImpl.class);
     private static final String cmdType = "control";
@@ -52,6 +52,7 @@ public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleLi
     public FaceMaskServiceImpl(DeviceManager dm, BizService bizService, RedisService redisService, Config config) {
         this.dm = dm;
         this.bizService = bizService;
+        this.bizService.registerHandler(this.getClass().getName(),this);
         this.redisService = redisService;
         this.config = config;
         dm.addLifeRecycleListener("facemask", this);
@@ -150,6 +151,17 @@ public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleLi
     @Override
     public void offline(String baseId) {
 
+    }
+
+    @Override
+    public void processMissTask(String deviceId, String bizId, String topic, JSONObject data) {
+
+        LogDeviceCtrl ctrl = bizService.getLogInfo(bizId);
+        if (Objects.equals(ctrl.getMsgType(), "sell")) {
+            //设备上执行指令重试，重复resp，实际上之前已经处理，则需要使用最新的二维码更新。
+            logger.info("device rectrl {}", bizId);
+            resendQrCode(ctrl.getBaseId());
+        }
     }
 
     private class SellInnerCmdCallback implements CmdCallback {

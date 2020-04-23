@@ -46,10 +46,6 @@ public class DeviceInfo {
         return sensorData.updateStsDataAndPull2DB(LocalDateTime.now(), getBaseId(), stssensordata);
     }
 
-    public String getGatewayid() {
-        return null;
-    }
-
     public boolean updateRealitySensorDataAndPull2DB(JSONObject stssensordata) {
         return sensorData.updateDataAndPull2DB(LocalDateTime.now(),getBaseId(),stssensordata);
     }
@@ -64,5 +60,9 @@ public class DeviceInfo {
 
     public Set<String> getPaireddevices() {
         return paireddevices;
+    }
+
+    public void setDevice(SysDevices devices) {
+        this.device = devices;
     }
 }

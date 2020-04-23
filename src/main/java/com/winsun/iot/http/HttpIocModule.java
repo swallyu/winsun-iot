@@ -4,10 +4,12 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
+import com.winsun.iot.config.Config;
 import com.winsun.iot.http.common.HttpMap;
 import com.winsun.iot.http.common.HttpController;
 import com.winsun.iot.http.common.HttpHandlerFactory;
 import com.winsun.iot.utils.ClassScanner;
+import com.winsun.iot.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,8 +20,6 @@ import java.util.Set;
 public class HttpIocModule extends AbstractModule {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpIocModule.class);
-
-    private static final String pkgName = "com.winsun.iot.http.handler";
 
     @Override
     protected void configure() {
@@ -37,6 +37,11 @@ public class HttpIocModule extends AbstractModule {
 
     private void initInstance(Multibinder<HttpController> multibinder) {
         try {
+            Config config = new Config();
+            String content = FileUtils.readContent("application.properties");
+            config.load(content);
+            String pkgName = config.getHttpHandlerPkg();
+
             ClassScanner scanner = new ClassScanner(pkgName);
             List<String> nameList = new ArrayList<>();
             scanner.doScan(nameList);

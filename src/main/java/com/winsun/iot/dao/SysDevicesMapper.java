@@ -11,7 +11,13 @@ public interface SysDevicesMapper {
 
     SysDevices selectByPrimaryKey(Integer id);
 
-    int updateByPrimaryKeySelective(SysDevices record);
+    int updateByBaseIdSelective(SysDevices record);
 
     int updateByPrimaryKey(SysDevices record);
+
+    int deleteDevices(String deviceId);
+
+    int updateByBaseId(SysDevices device);
+
+    SysDevices selectByBaseId(String baseId);
 }

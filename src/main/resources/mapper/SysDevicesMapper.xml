@@ -8,7 +8,6 @@
     <result column="name" jdbcType="VARCHAR" property="name" />
     <result column="base_id" jdbcType="VARCHAR" property="baseId" />
     <result column="mobile" jdbcType="VARCHAR" property="mobile" />
-    <result column="node_type" jdbcType="VARCHAR" property="nodeType" />
     <result column="device_type" jdbcType="VARCHAR" property="deviceType" />
     <result column="hardware_version" jdbcType="VARCHAR" property="hardwareVersion" />
     <result column="software_version" jdbcType="VARCHAR" property="softwareVersion" />
@@ -22,7 +21,7 @@
   </resultMap>
   <sql id="Base_Column_List">
     <!--@mbg.generated-->
-    id, `name`, base_id, mobile, node_type, device_type, hardware_version, software_version, 
+    id, `name`, base_id, mobile, device_type, hardware_version, software_version,
     isgateway, remarks, ischecked, luat_version, create_time, modified_time, extend
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
@@ -40,13 +39,13 @@
   <insert id="insert" parameterType="com.winsun.iot.domain.SysDevices">
     <!--@mbg.generated-->
     insert into sys_devices (`name`, base_id,
-      mobile, node_type, device_type, 
+      mobile,  device_type,
       hardware_version, software_version, isgateway, 
       remarks, ischecked, luat_version, 
       create_time, modified_time, extend
       )
     values (#{name,jdbcType=VARCHAR}, #{baseId,jdbcType=VARCHAR},
-      #{mobile,jdbcType=VARCHAR}, #{nodeType,jdbcType=VARCHAR}, #{deviceType,jdbcType=VARCHAR}, 
+      #{mobile,jdbcType=VARCHAR},  #{deviceType,jdbcType=VARCHAR},
       #{hardwareVersion,jdbcType=VARCHAR}, #{softwareVersion,jdbcType=VARCHAR}, #{isgateway,jdbcType=BIT}, 
       #{remarks,jdbcType=VARCHAR}, #{ischecked,jdbcType=BIT}, #{luatVersion,jdbcType=VARCHAR}, 
       #{createTime,jdbcType=TIMESTAMP}, #{modifiedTime,jdbcType=TIMESTAMP}, #{extend,jdbcType=LONGVARCHAR}
@@ -65,9 +64,6 @@
       </if>
       <if test="mobile != null">
         mobile,
-      </if>
-      <if test="nodeType != null">
-        node_type,
       </if>
       <if test="deviceType != null">
         device_type,
@@ -110,9 +106,6 @@
       <if test="mobile != null">
         #{mobile,jdbcType=VARCHAR},
       </if>
-      <if test="nodeType != null">
-        #{nodeType,jdbcType=VARCHAR},
-      </if>
       <if test="deviceType != null">
         #{deviceType,jdbcType=VARCHAR},
       </if>
@@ -145,21 +138,15 @@
       </if>
     </trim>
   </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.winsun.iot.domain.SysDevices">
+  <update id="updateByBaseIdSelective" parameterType="com.winsun.iot.domain.SysDevices">
     <!--@mbg.generated-->
     update sys_devices
     <set>
       <if test="name != null">
         `name` = #{name,jdbcType=VARCHAR},
       </if>
-      <if test="baseId != null">
-        base_id = #{baseId,jdbcType=VARCHAR},
-      </if>
       <if test="mobile != null">
         mobile = #{mobile,jdbcType=VARCHAR},
-      </if>
-      <if test="nodeType != null">
-        node_type = #{nodeType,jdbcType=VARCHAR},
       </if>
       <if test="deviceType != null">
         device_type = #{deviceType,jdbcType=VARCHAR},
@@ -192,7 +179,7 @@
         extend = #{extend,jdbcType=LONGVARCHAR},
       </if>
     </set>
-    where id = #{id,jdbcType=INTEGER}
+    where base_id = #{baseId,jdbcType=VARCHAR}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.winsun.iot.domain.SysDevices">
     <!--@mbg.generated-->
@@ -200,7 +187,6 @@
     set `name` = #{name,jdbcType=VARCHAR},
       base_id = #{baseId,jdbcType=VARCHAR},
       mobile = #{mobile,jdbcType=VARCHAR},
-      node_type = #{nodeType,jdbcType=VARCHAR},
       device_type = #{deviceType,jdbcType=VARCHAR},
       hardware_version = #{hardwareVersion,jdbcType=VARCHAR},
       software_version = #{softwareVersion,jdbcType=VARCHAR},
@@ -213,4 +199,31 @@
       extend = #{extend,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=INTEGER}
   </update>
+
+  <delete id="deleteDevices">
+    delete from sys_devices where base_id=#{deviceId}
+  </delete>
+  <insert id="updateByBaseId">
+    update sys_devices
+    set `name` = #{name,jdbcType=VARCHAR},
+    base_id = #{baseId,jdbcType=VARCHAR},
+    mobile = #{mobile,jdbcType=VARCHAR},
+    device_type = #{deviceType,jdbcType=VARCHAR},
+    hardware_version = #{hardwareVersion,jdbcType=VARCHAR},
+    software_version = #{softwareVersion,jdbcType=VARCHAR},
+    isgateway = #{isgateway,jdbcType=BIT},
+    remarks = #{remarks,jdbcType=VARCHAR},
+    ischecked = #{ischecked,jdbcType=BIT},
+    luat_version = #{luatVersion,jdbcType=VARCHAR},
+    create_time = #{createTime,jdbcType=TIMESTAMP},
+    modified_time = #{modifiedTime,jdbcType=TIMESTAMP},
+    extend = #{extend,jdbcType=LONGVARCHAR}
+    where base_id = #{baseId,jdbcType=VARCHAR}
+  </insert>
+  <select id="selectByBaseId" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from sys_devices
+    where base_id = #{baseId,jdbcType=VARCHAR}
+  </select>
 </mapper>

@@ -3,17 +3,17 @@ package com.winsun.iot.command.biz;
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.winsun.iot.biz.service.BizService;
-import com.winsun.iot.biz.service.FaceMaskService;
+import com.winsun.facemask.service.FaceMaskService;
 import com.winsun.iot.command.CmdCallback;
 import com.winsun.iot.command.CmdMsg;
 import com.winsun.iot.command.CmdRuleInfo;
 import com.winsun.iot.command.EnumQoS;
 import com.winsun.iot.device.DeviceManager;
 import com.winsun.iot.domain.CmdResult;
-import com.winsun.iot.domain.LogDeviceCtrl;
 import com.winsun.iot.ruleengine.CmdRule;
 import com.winsun.iot.ruleengine.EnumCmdStatus;
 import com.winsun.iot.utils.MsgConsumer;
+import com.winsun.iot.utils.PathUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,8 +97,8 @@ public class BizCmdHandler {
                 String topic = cmdMsg.getTopic().replaceAll("Response","Control");
                 boolean send = dm.sendRawCmd(data.toJSONString(),1,topic);
 
-                bizService.precessMissTask(bizId,topic,data);
-
+                String deviceId = PathUtil.getPathLast(topic);
+                bizService.processMissTask(deviceId,bizId,topic,data);
             }
         }
 

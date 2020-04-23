@@ -17,5 +17,8 @@ public interface BizService {
 
     void updateResendBizInfo(String bizId, String cmd, String newBizId);
 
-    void precessMissTask(String bizId, String topic, JSONObject data);
+    void processMissTask(String deviceId, String bizId, String topic, JSONObject data);
+
+    void registerHandler(String name, ProcessService service);
+
 }
