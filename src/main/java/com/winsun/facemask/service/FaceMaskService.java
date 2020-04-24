@@ -11,4 +11,5 @@ public interface FaceMaskService {
     void resendQrCode(String baseId);
 
     void processMissTask(String baseId);
+
 }

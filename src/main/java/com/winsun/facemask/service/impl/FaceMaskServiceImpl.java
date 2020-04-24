@@ -9,6 +9,7 @@ import com.winsun.iot.biz.service.ProcessService;
 import com.winsun.iot.command.CmdCallback;
 import com.winsun.iot.command.EnumQoS;
 import com.winsun.iot.config.Config;
+import com.winsun.iot.constcode.MsgCode;
 import com.winsun.iot.device.DeviceLifeRecycleListener;
 import com.winsun.iot.device.DeviceManager;
 import com.winsun.iot.domain.CmdResult;
@@ -68,6 +69,7 @@ public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleLi
 
     @Override
     public CmdResult<String> sellFaceMak(SellInfo sellInfo) {
+
         JSONObject cmdObj = new JSONObject();
         cmdObj.put("msgType", "sell");
         cmdObj.put("location", 1);
@@ -80,7 +82,10 @@ public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleLi
         }
 
         CmdResult<String> result = dm.invokeCmd(topic, EnumQoS.ExtractOnce, cmdType, sellInfo.getBaseId(), cmdObj,
-                new SellInnerCmdCallback(sellInfo), 5, false);
+                new SellInnerCmdCallback(sellInfo), 5, false,false);
+        if(result.getCode()!= MsgCode.CODE_SUCCESS){
+            return result;
+        }
 
         bizService.startBiz(result.getData(), sellInfo.getBaseId(), JSON.toJSONString(sellInfo),
                 cmdType, "sell", EnumQoS.ExtractOnce.getCode());
@@ -105,7 +110,7 @@ public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleLi
         cmdObj.put("data", url);
 
         CmdResult<String> result = dm.invokeCmd(topic, EnumQoS.ExtractOnce, cmdType, deviceId, cmdObj,
-                new UpdateQrCodeInnerCmdCallback(), 10, false);
+                new UpdateQrCodeInnerCmdCallback(), 10, false, false);
         String bizId = result.getData();
 
         QrCodeInfo qrCodeInfo =

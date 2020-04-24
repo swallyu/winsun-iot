@@ -13,4 +13,8 @@ public final class MsgCode {
      */
     public static int DEVICE_EXITS=10_001; //
     public static int DEVICE_NOT_EXITS=10_002; //
+    /**
+     * 设备掉线
+     */
+    public static int DEVICE_OFFLINE=10_003; //
 }

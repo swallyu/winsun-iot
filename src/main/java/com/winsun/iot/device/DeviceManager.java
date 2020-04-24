@@ -255,7 +255,15 @@ public class DeviceManager {
 
     public CmdResult<String> invokeCmd(String topic, EnumQoS qos,
                                        String msgtype, String baseId, JSONObject cmdObj,
-                                       CmdCallback callback, int timeout, boolean resendUseNewSig) {
+                                       CmdCallback callback, int timeout, boolean resendUseNewSig, boolean invokeIfNotOnline) {
+        DeviceInfo info = getDeviceObj(baseId);
+        if(info==null){
+            return new CmdResult<String>(MsgCode.DEVICE_NOT_EXITS,false,"设备不存在",null);
+        }
+        if(!invokeIfNotOnline&&!info.isOnline()){
+            return new CmdResult<String>(MsgCode.DEVICE_OFFLINE,false,"设备掉线",null);
+        }
+
         String dstTopic = topic + "/" + baseId;
 
         String sig = RandomString.getRandomString(16);
