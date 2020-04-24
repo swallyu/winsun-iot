@@ -31,11 +31,7 @@ public class IotModule extends AbstractModule {
     @Provides
     @Singleton
     Config config() {
-        Config config = new Config();
-        String content = FileUtils.readContent("application.properties");
-        System.out.println(content);
-        config.load(content);
-        return config;
+        return Config.load();
     }
 
     @Provides

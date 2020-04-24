@@ -65,8 +65,11 @@ public class Config {
     }
 
 
-    public String getHttpHandlerPkg() {
-        return getString("http.handler.pkg", "");
+    public String[] getHttpHandlerPkg() {
+        return getString("http.handler.pkg", "").split(",");
+    }
+    public String[] getPluginPkg() {
+        return getString("plugin.package", "").split(",");
     }
 
     public String getBizServerReq(String path){
@@ -83,4 +86,10 @@ public class Config {
         return value;
     }
 
+    public static Config load(){
+        Config config = new Config();
+        String content = FileUtils.readContent("application.properties");
+        config.load(content);
+        return config;
+    }
 }

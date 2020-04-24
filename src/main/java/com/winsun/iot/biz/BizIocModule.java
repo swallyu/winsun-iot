@@ -17,13 +17,4 @@ public class BizIocModule extends AbstractModule {
         bind(BizService.class).to(BizServiceImpl.class).in(Singleton.class);
     }
 
-    @Provides
-    @Singleton
-    public FaceMaskService faceMaskService(DeviceManager dm,
-                                           BizService bizService,
-                                           RedisService redisService,
-                                           Config config){
-        FaceMaskService faceMaskService = new FaceMaskServiceImpl(dm, bizService, redisService, config);
-        return faceMaskService;
-    }
 }

@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -37,15 +38,18 @@ public class HttpIocModule extends AbstractModule {
 
     private void initInstance(Multibinder<HttpController> multibinder) {
         try {
-            Config config = new Config();
-            String content = FileUtils.readContent("application.properties");
-            config.load(content);
-            String pkgName = config.getHttpHandlerPkg();
+            Config config = Config.load();
 
-            ClassScanner scanner = new ClassScanner(pkgName);
-            List<String> nameList = new ArrayList<>();
-            scanner.doScan(nameList);
-            for (String clzName : nameList) {
+            String[] pkgNames = config.getHttpHandlerPkg();
+            Set<String> clzNameSet = new HashSet<>();
+            for (String pkgName : pkgNames) {
+                ClassScanner scanner = new ClassScanner(pkgName);
+                List<String> nameList = new ArrayList<>();
+                scanner.doScan(nameList);
+                clzNameSet.addAll(nameList);
+            }
+
+            for (String clzName : clzNameSet) {
                 Class<?> clz = Class.forName(clzName);
                 HttpMap handler = clz.getAnnotation(HttpMap.class);
                 if (handler != null) {

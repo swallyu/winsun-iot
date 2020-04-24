@@ -113,10 +113,31 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>timestamp-property</id>
+                        <goals>
+                            <goal>timestamp-property</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <name>current.time</name>
+                    <pattern>yyyy-MM-dd HH:mm:ss</pattern>
+                    <timeZone>GMT+8</timeZone>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
                     <archive>
+                        <manifestEntries>
+                            <Main-Version>${current.time}</Main-Version>
+                        </manifestEntries>
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
