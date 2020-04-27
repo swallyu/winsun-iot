@@ -109,8 +109,15 @@ public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleLi
         cmdObj.put("msgType", "updateQRC");
         cmdObj.put("data", url);
 
+        /**
+         * 即使掉线也重新更新二维码
+         */
         CmdResult<String> result = dm.invokeCmd(topic, EnumQoS.ExtractOnce, cmdType, deviceId, cmdObj,
-                new UpdateQrCodeInnerCmdCallback(), 10, false, false);
+                new UpdateQrCodeInnerCmdCallback(), 10, false, true);
+        if(result.getCode()!= MsgCode.CODE_SUCCESS){
+            return result;
+        }
+
         String bizId = result.getData();
 
         QrCodeInfo qrCodeInfo =
@@ -148,9 +155,11 @@ public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleLi
         obj.put("baseId", deviceId);
         JSONObject retObj = HttpClientUtil.doPostJson(url, obj.toJSONString());
         logger.info("receive:\n{}", retObj);
-        String qrCodeToken = retObj.getString("token");
-        String qrCodeUrl = retObj.getString("url");
-        updateQrCode(qrCodeToken, qrCodeUrl);
+        if(retObj!=null){
+            String qrCodeToken = retObj.getString("token");
+            String qrCodeUrl = retObj.getString("url");
+            updateQrCode(qrCodeToken, qrCodeUrl);
+        }
     }
 
     @Override

@@ -40,7 +40,17 @@ public class ClassScanner {
     public List<String> doScan(String pkgName, List<String> classNameList) throws IOException {
         String pkgPath = pkgName.replaceAll("\\.", "/");
         URL url = classLoader.getResource(pkgPath);
+        innerScan(pkgName, classNameList, pkgPath, url);
 
+        if(url.toString().contains("test-classes")){
+            URL classesUrl = new URL(url.toString().replaceAll("test-classes","classes"));
+            innerScan(pkgName, classNameList, pkgPath, classesUrl);
+        }
+
+        return classNameList;
+    }
+
+    private void innerScan(String pkgName, List<String> classNameList, String pkgPath, URL url) throws IOException {
         String filePath = getRootPath(url);
         List<String> tmpFileList = new ArrayList<>();
 
@@ -63,7 +73,6 @@ public class ClassScanner {
                 doScan(pkgName + "." + clzName, classNameList);
             }
         }
-        return classNameList;
     }
 
     private static String toFullyQualifiedName(String shortName, String basePackage) {

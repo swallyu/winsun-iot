@@ -2,6 +2,7 @@ package com.winsun.iot.utils;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 
 public class DateTimeUtils {
@@ -127,6 +128,7 @@ public class DateTimeUtils {
     public static String formatMinute(LocalDateTime time) {
         return time.format(fullMinutes);
     }
+
     public static String formatSecond(LocalDateTime time) {
         return time.format(fullSecondFormatter);
     }
@@ -269,8 +271,23 @@ public class DateTimeUtils {
         return LocalDateTime.of(LocalDate.parse(date + "01", datePlainFormatter), LocalTime.of(0, 0));
     }
 
-    public static long getMillSecond(LocalDateTime dateTime){
+    public static long getMillSecond(LocalDateTime dateTime) {
         return dateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+    }
+
+    public static LocalDateTime parseDefaultTime(String time) {
+        if(time==null){
+            return null;
+        }
+        TemporalAccessor temporalAccessor =
+                DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(time);
+        return LocalDateTime.from(temporalAccessor);
+    }
+
+    public static LocalDate parseDefaultDate(String time) {
+        TemporalAccessor temporalAccessor =
+                DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(time);
+        return LocalDate.from(temporalAccessor);
     }
 
     public static void main(String[] args) {

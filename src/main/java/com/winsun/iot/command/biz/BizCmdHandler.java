@@ -39,9 +39,6 @@ public class BizCmdHandler {
     @Inject
     private BizService bizService;
 
-    @Inject
-    private FaceMaskService maskService;
-
     public BizCmdHandler() {
         executorService = Executors.newScheduledThreadPool(2, new ThreadFactory() {
             @Override

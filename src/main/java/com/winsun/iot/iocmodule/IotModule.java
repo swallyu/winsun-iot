@@ -7,6 +7,7 @@ import com.winsun.iot.config.Config;
 import com.winsun.iot.dao.CommonDao;
 import com.winsun.iot.device.DeviceManager;
 import com.winsun.iot.http.HttpIocModule;
+import com.winsun.iot.logdata.LogDataService;
 import com.winsun.iot.persistence.PersistenceBatchService;
 import com.winsun.iot.persistence.PersistenceService;
 import com.winsun.iot.persistence.redis.RedisService;
@@ -52,5 +53,12 @@ public class IotModule extends AbstractModule {
     PersistenceBatchService persistenceBatchService(CommonDao commonDao) {
         PersistenceBatchService service = new PersistenceBatchService(commonDao);
         return service;
+    }
+
+    @Provides
+    @Singleton
+    LogDataService logDataService(RedisService redisService){
+        LogDataService dataService = new LogDataService(redisService);
+        return dataService;
     }
 }

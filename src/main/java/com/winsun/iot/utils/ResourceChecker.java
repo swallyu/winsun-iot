@@ -21,6 +21,11 @@ public class ResourceChecker {
         }
     });
 
+    /**
+     *
+     * @param retryInterval second
+     * @param action
+     */
     public static void addCheckTask(int retryInterval, Action<Boolean> action){
         CheckTask task = new CheckTask(UUID.randomUUID().toString(),retryInterval,action);
 

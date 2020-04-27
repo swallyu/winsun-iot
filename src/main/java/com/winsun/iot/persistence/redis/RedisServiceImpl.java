@@ -1,19 +1,16 @@
 package com.winsun.iot.persistence.redis;
 
-import com.winsun.iot.config.Config;
+import com.winsun.iot.exception.RedisWrapException;
 import com.winsun.iot.utils.ResourceChecker;
 import com.winsun.iot.utils.functions.Action;
-import com.winsun.iot.utils.functions.Function;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
+import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -110,6 +107,76 @@ public class RedisServiceImpl implements RedisService {
     public boolean hdel(String key, String... fields) {
         redisCommands.hdel(key, fields);
         return true;
+    }
+
+    @Override
+    public boolean hset(String key, String field, String value, int expired, TimeUnit timeUnit) {
+        redisCommands.hset(key,field,value);
+        redisCommands.expire(key,timeUnit.toSeconds(expired));
+
+        return true;
+    }
+
+    @Override
+    public boolean hset(String key, Map<String, String> value, int expired, TimeUnit timeUnit) {
+        redisCommands.hmset(key,value);
+        redisCommands.expire(key,timeUnit.toSeconds(expired));
+
+        return true;
+    }
+
+    @Override
+    public boolean hset(String key, Object value, int expired, TimeUnit timeUnit) {
+        try {
+            Map<String,String> properties =  BeanUtils.describe(value);
+            hset(key, properties, expired, timeUnit);
+            return false;
+        } catch (Exception e) {
+            logger.error(e.getMessage(),e);
+            throw new RedisWrapException(e);
+        }
+    }
+
+    @Override
+    public Map<String, String> hgetAll(String key) {
+        return redisCommands.hgetall(key);
+    }
+
+    @Override
+    public boolean lpush(String key, String... data) {
+        redisCommands.rpush(key,data);
+        return false;
+    }
+
+    @Override
+    public long llen(String key) {
+        return redisCommands.llen(key);
+    }
+
+    @Override
+    public List<String> lpopRange(String key,int count) {
+        List<String> result = redisCommands.lrange(key,0,count-1);
+        redisCommands.ltrim(key,count,-1);
+
+        return result;
+    }
+
+    @Override
+    public List<String> lgetAll(String key) {
+        List<String> result = redisCommands.lrange(key,0,-1);
+
+        return result;
+    }
+
+    @Override
+    public boolean sadd(String key, String... value) {
+        redisCommands.sadd(key,value);
+        return true;
+    }
+
+    @Override
+    public Set<String> sget(String key) {
+        return redisCommands.smembers(key);
     }
 
     private AtomicBoolean resetTimer = new AtomicBoolean(false);

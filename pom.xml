@@ -68,6 +68,12 @@
             <version>3.12</version>
         </dependency>
 
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.9.4</version>
+        </dependency>
+
         <!-- netty -->
         <dependency>
             <groupId>io.netty</groupId>

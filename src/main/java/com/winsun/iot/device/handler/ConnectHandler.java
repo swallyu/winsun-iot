@@ -1,13 +1,16 @@
 package com.winsun.iot.device.handler;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.winsun.iot.command.CmdHandler;
 import com.winsun.iot.command.CmdMsg;
+import com.winsun.iot.constcode.EventCode;
 import com.winsun.iot.dao.CommonDao;
 import com.winsun.iot.device.DeviceLifeRecycleListener;
 import com.winsun.iot.device.DeviceManager;
 import com.winsun.iot.domain.LogDeviceEvents;
+import com.winsun.iot.logdata.LogDataService;
 import com.winsun.iot.utils.functions.Function;
 import com.winsun.iot.persistence.PersistenceService;
 import com.winsun.iot.utils.PathUtil;
@@ -39,6 +42,9 @@ public class ConnectHandler implements CmdHandler {
     private CommonDao dao;
     @Inject
     private DeviceManager deviceManager;
+
+    @Inject
+    private LogDataService logDataService;
 
     public ConnectHandler() {
         this.scheduledExecutorService = Executors.newScheduledThreadPool(2, new ThreadFactory() {
@@ -80,16 +86,20 @@ public class ConnectHandler implements CmdHandler {
                 }
             },5, TimeUnit.SECONDS);
         }
+        LogDeviceEvents events = new LogDeviceEvents();
+        events.setBaseId(gateway);
+        events.setEventName("GatewayConnState");
+        events.setTime(LocalDateTime.now());
+        events.setValue(status+"");
+
+        logDataService.addData(EventCode.EVENT_DEVICE_NETSTATE, JSON.toJSONString(events));
+
         persistenceService.addAction(new Function() {
             @Override
             public void execute() {
-                LogDeviceEvents events = new LogDeviceEvents();
-                events.setBaseId(gateway);
-                events.setEventName("GatewayConnState");
-                events.setTime(LocalDateTime.now());
-                events.setValue(status+"");
                 dao.addEvent(events);
             }
         });
     }
+
 }
