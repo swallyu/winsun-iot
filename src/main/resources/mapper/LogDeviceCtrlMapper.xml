@@ -11,6 +11,8 @@
         <result column="cmd_msg" jdbcType="LONGVARCHAR" property="cmdMsg"/>
         <result column="exec_step" jdbcType="INTEGER" property="execStep"/>
         <result column="qos" jdbcType="INTEGER" property="qos"/>
+        <result column="log_id" jdbcType="INTEGER" property="logId"/>
+        <result column="retry_times" jdbcType="BIGINT" property="retryTimes"/>
         <result column="complete" jdbcType="BIT" property="complete"/>
         <result column="result" jdbcType="BIT" property="result"/>
         <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
@@ -18,7 +20,7 @@
     </resultMap>
     <sql id="Base_Column_List">
         <!--@mbg.generated-->
-        id, base_id, cmd_type, sig, cmd_msg, exec_step, qos, complete, `result`, create_time,
+        id, base_id, cmd_type, sig, cmd_msg, exec_step, qos, complete, `result`, create_time,retry_times,log_id,
         update_time
     </sql>
     <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
@@ -38,12 +40,12 @@
         <!--@mbg.generated-->
         insert into log_device_ctrl (base_id, cmd_type,msg_type, sig,
         cmd_msg, exec_step, qos,
-        complete, `result`, create_time, retry_times,
+        complete, `result`, create_time, retry_times,log_id,
         update_time)
         values (#{baseId,jdbcType=VARCHAR}, #{cmdType,jdbcType=VARCHAR},#{msgType,jdbcType=VARCHAR},
         #{sig,jdbcType=VARCHAR},
         #{cmdMsg,jdbcType=LONGVARCHAR}, #{execStep,jdbcType=INTEGER}, #{qos,jdbcType=INTEGER},
-        #{complete,jdbcType=BIT}, #{result,jdbcType=BIT}, #{createTime,jdbcType=TIMESTAMP},#{retryTimes},
+        #{complete,jdbcType=BIT}, #{result,jdbcType=BIT}, #{createTime,jdbcType=TIMESTAMP},#{retryTimes},#{logId}
         #{updateTime,jdbcType=TIMESTAMP})
     </insert>
     <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.winsun.iot.domain.LogDeviceCtrl"

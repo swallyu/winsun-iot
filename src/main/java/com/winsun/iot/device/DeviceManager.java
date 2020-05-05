@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
+import com.winsun.iot.biz.domain.BizInfo;
 import com.winsun.iot.command.*;
 import com.winsun.iot.command.biz.BizCmdHandler;
 import com.winsun.iot.config.Config;
@@ -23,6 +24,7 @@ import com.winsun.iot.utils.DateTimeUtils;
 import com.winsun.iot.utils.HttpClientUtil;
 import com.winsun.iot.utils.RandomString;
 import com.winsun.iot.utils.functions.Function;
+import com.winsun.iot.utils.idutil.IdWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -253,15 +255,15 @@ public class DeviceManager {
         return this.deviceInfoMap.get(baseid);
     }
 
-    public CmdResult<String> invokeCmd(String topic, EnumQoS qos,
+    public CmdResult<BizInfo> invokeCmd(String topic, EnumQoS qos,
                                        String msgtype, String baseId, JSONObject cmdObj,
                                        CmdCallback callback, int timeout, boolean resendUseNewSig, boolean invokeIfNotOnline) {
         DeviceInfo info = getDeviceObj(baseId);
         if(info==null){
-            return new CmdResult<String>(MsgCode.DEVICE_NOT_EXITS,false,"设备不存在",null);
+            return new CmdResult<BizInfo>(MsgCode.DEVICE_NOT_EXITS,false,"设备不存在",null);
         }
         if(!invokeIfNotOnline&&!info.isOnline()){
-            return new CmdResult<String>(MsgCode.DEVICE_OFFLINE,false,"设备掉线",null);
+            return new CmdResult<BizInfo>(MsgCode.DEVICE_OFFLINE,false,"设备掉线",null);
         }
 
         String dstTopic = topic + "/" + baseId;
@@ -277,7 +279,8 @@ public class DeviceManager {
 
         connManager.sendCmd(new CmdRuleInfo(msg), callback, timeout, resendUseNewSig);
 
-        CmdResult<String> result = new CmdResult<>(0, true, "发送控制命令成功", sig);
+        BizInfo bizInfo = new BizInfo(sig, IdWorker.getId());
+        CmdResult<BizInfo> result = new CmdResult<>(0, true, "发送控制命令成功", bizInfo);
         return result;
     }
 

@@ -9,7 +9,7 @@ public interface BizService {
 
     BizInfo getById(String bizId);
 
-    void startBiz(String bizId, String baseId, String cmd, String cmdType, String msgType, int qos);
+    void startBiz(String bizId,long logId, String baseId, String cmd, String cmdType, String msgType, int qos);
 
     LogDeviceCtrl getLogInfo(String bizId);
 

@@ -62,6 +62,7 @@ public class LogDeviceCtrl {
     * 
     */
     private LocalDateTime updateTime;
+    private long logId;
 
     public Integer getId() {
         return id;
@@ -165,5 +166,13 @@ public class LogDeviceCtrl {
 
     public void setRetryTimes(int retryTimes) {
         this.retryTimes = retryTimes;
+    }
+
+    public void setLogId(long logId) {
+        this.logId = logId;
+    }
+
+    public long getLogId() {
+        return logId;
     }
 }

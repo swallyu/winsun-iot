@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 public class BizInfo {
     private String bizId;
+    private Long logId;
+
     private LocalDateTime startTime;
     private LocalDateTime finishTime;
 
@@ -12,16 +14,18 @@ public class BizInfo {
     private boolean finish = false;
     private boolean success = false;
 
-    public BizInfo(String bizId) {
+    public BizInfo(String bizId, Long logId) {
         this.bizId = bizId;
         this.startTime = LocalDateTime.now();
         this.updateTime = LocalDateTime.now();
+        this.logId = logId;
     }
 
-    public BizInfo(String bizId, LocalDateTime startTime) {
+    public BizInfo(String bizId, Long logId, LocalDateTime startTime) {
         this.bizId = bizId;
         this.startTime = startTime;
         this.updateTime = LocalDateTime.now();
+        this.logId = logId;
     }
 
     public void setBizId(String bizId) {
@@ -30,6 +34,10 @@ public class BizInfo {
 
     public String getBizId() {
         return bizId;
+    }
+
+    public Long getLogId() {
+        return logId;
     }
 
     public LocalDateTime getStartTime() {
@@ -44,7 +52,7 @@ public class BizInfo {
         return finish;
     }
 
-    public void setFinish(boolean finish,boolean result) {
+    public void setFinish(boolean finish, boolean result) {
         this.finish = finish;
         this.finishTime = LocalDateTime.now();
         this.success = result;

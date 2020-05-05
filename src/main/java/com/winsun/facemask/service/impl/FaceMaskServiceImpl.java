@@ -3,6 +3,7 @@ package com.winsun.facemask.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.winsun.facemask.service.FaceMaskService;
+import com.winsun.iot.biz.domain.BizInfo;
 import com.winsun.iot.biz.domain.SellInfo;
 import com.winsun.iot.biz.service.BizService;
 import com.winsun.iot.biz.service.ProcessService;
@@ -68,7 +69,7 @@ public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleLi
     }
 
     @Override
-    public CmdResult<String> sellFaceMak(SellInfo sellInfo) {
+    public CmdResult<BizInfo> sellFaceMak(SellInfo sellInfo) {
 
         JSONObject cmdObj = new JSONObject();
         cmdObj.put("msgType", "sell");
@@ -77,17 +78,18 @@ public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleLi
         String currentTicket = redisService.hget(REDIS_DEVICE_TOKEN, sellInfo.getBaseId());
 
         if (!Objects.equals(currentTicket, sellInfo.getTicket())) {
-            CmdResult<String> msg = new CmdResult<String>(2001, false, "无效的二维码");
+            CmdResult<BizInfo> msg = new CmdResult<BizInfo>(2001, false, "无效的二维码",null);
             return msg;
         }
 
-        CmdResult<String> result = dm.invokeCmd(topic, EnumQoS.ExtractOnce, cmdType, sellInfo.getBaseId(), cmdObj,
+        CmdResult<BizInfo> result = dm.invokeCmd(topic, EnumQoS.ExtractOnce, cmdType, sellInfo.getBaseId(), cmdObj,
                 new SellInnerCmdCallback(sellInfo), 5, false,false);
         if(result.getCode()!= MsgCode.CODE_SUCCESS){
             return result;
         }
 
-        bizService.startBiz(result.getData(), sellInfo.getBaseId(), JSON.toJSONString(sellInfo),
+        bizService.startBiz(result.getData().getBizId(),result.getData().getLogId(),
+                sellInfo.getBaseId(), JSON.toJSONString(sellInfo),
                 cmdType, "sell", EnumQoS.ExtractOnce.getCode());
 
         return result;
@@ -128,7 +130,7 @@ public class FaceMaskServiceImpl implements FaceMaskService, DeviceLifeRecycleLi
         qrCodeInfo.setBizId(bizId);
         qrCodeInfo.setUpdateTime(LocalDateTime.now());
 
-        bizService.startBiz(bizId, deviceId, cmdObj.toJSONString(),
+        bizService.startBiz(bizId, 0, deviceId, cmdObj.toJSONString(),
                 cmdType, "updateQRC", EnumQoS.ExtractOnce.getCode());
 
         return result;

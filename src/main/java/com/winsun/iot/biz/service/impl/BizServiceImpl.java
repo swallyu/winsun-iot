@@ -17,7 +17,6 @@ import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class BizServiceImpl implements BizService {
@@ -47,7 +46,7 @@ public class BizServiceImpl implements BizService {
     }
 
     @Override
-    public void startBiz(String bizId, String baseId, String cmd, String cmdType, String msgType, int qos) {
+    public void startBiz(String bizId, long logId, String baseId, String cmd, String cmdType, String msgType, int qos) {
         LogDeviceCtrl entity = new LogDeviceCtrl();
         entity.setBaseId(baseId);
         entity.setCmdMsg(cmd);
@@ -60,9 +59,10 @@ public class BizServiceImpl implements BizService {
         entity.setQos(qos);
         entity.setResult(false);
         entity.setSig(bizId);
+        entity.setLogId(logId);
         this.logDeviceCtrlMapper.insert(entity);
 
-        bizInfoMap.put(bizId, new BizInfo(bizId));
+        bizInfoMap.put(bizId, new BizInfo(bizId,logId));
 
         redisService.hset(REDIS_BIZ_CACHE_KEY + bizId, entity, 30, TimeUnit.MINUTES);
     }
@@ -74,7 +74,7 @@ public class BizServiceImpl implements BizService {
             entity.setCmdMsg(cmd);
             entity.setRetryTimes(entity.getRetryTimes() + 1);
             bizInfoMap.remove(bizId);
-            bizInfoMap.put(newBizId, new BizInfo(bizId));
+            bizInfoMap.put(newBizId, new BizInfo(bizId,entity.getLogId()));
             this.logDeviceCtrlMapper.updateByPrimaryKey(entity);
 
             redisService.hset(REDIS_BIZ_CACHE_KEY + bizId, entity, 30, TimeUnit.MINUTES);
@@ -130,7 +130,8 @@ public class BizServiceImpl implements BizService {
         if (value.size() > 1) {
             LocalDateTime startTime = DateTimeUtils.parseDefaultTime(value.get("createTime"));
             LocalDateTime finishTime = DateTimeUtils.parseDefaultTime(value.get("updateTime"));
-            BizInfo info = new BizInfo(bizId, startTime);
+            long logId = Long.valueOf(value.get("logId"));
+            BizInfo info = new BizInfo(bizId, logId);
 
             info.setFinish(Boolean.valueOf(value.get("complete")), Boolean.valueOf(value.get("result")));
             if (info.isFinish() && finishTime != null) {
